@@ -1,0 +1,27 @@
+{
+ "cam_move_median": 1.063,
+ "cam_move_p95": 6.423,
+ "zoom_median": 0.158,
+ "zoom_in_pct": 86.6,
+ "still_pct": 2.3,
+ "dup_frames": 14,
+ "local_change_median": 1.054,
+ "local_change_p95": 4.504,
+ "luma_mean_mean": 123.467,
+ "luma_mean_median": 122.47,
+ "luma_p5_mean": 60.808,
+ "luma_p5_median": 52.5,
+ "luma_p95_mean": 207.793,
+ "luma_p95_median": 229.2,
+ "shadow_pct_below_40_mean": 10.046,
+ "shadow_pct_below_40_median": 1.975,
+ "sat_mean_mean": 0.5,
+ "sat_mean_median": 0.523,
+ "colorfulness_mean": 70.338,
+ "colorfulness_median": 79.715,
+ "rgb": [
+  137.7,
+  121.2,
+  104.1
+ ]
+}

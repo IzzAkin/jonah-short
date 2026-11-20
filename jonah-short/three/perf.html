@@ -1,0 +1,20 @@
+<!doctype html><html><body style="margin:0"><canvas id="c" width="1080" height="1920"></canvas>
+<script src="../node_modules/three/build/three.min.js"></script>
+<script src="../timing.js"></script><script src="../draw.js"></script>
+<script>
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true, preserveDrawingBuffer: true });
+r.setSize(1080, 1920, false); r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
+const s = new THREE.Scene(); s.background = new THREE.Color('#9cc8e8'); s.fog = new THREE.Fog('#cfe3ef', 20, 80);
+const cam = new THREE.PerspectiveCamera(45, 1080/1920, 0.1, 300); cam.position.set(0, 1.6, 8); cam.lookAt(0, 1.2, 0);
+s.add(new THREE.HemisphereLight('#dfefff', '#8a6a48', 0.9));
+const sun = new THREE.DirectionalLight('#fff1d6', 2.2); sun.position.set(-10, 14, 8); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20 }); s.add(sun);
+const g = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshLambertMaterial({ color: '#d8b47c' })); g.rotation.x = -Math.PI/2; g.receiveShadow = true; s.add(g);
+for (let i = 0; i < 200; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(2, 1 + (i%5), 2), new THREE.MeshLambertMaterial({ color: '#e8c48e' })); m.position.set((i%20-10)*3, 1, -10 - Math.floor(i/20)*4); m.castShadow = m.receiveShadow = true; s.add(m); }
+const bills = [];
+for (let i = 0; i < 5; i++) { const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 1536; const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(2.08, 3.13), new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.02 })); m.position.set(-2 + i, 1.5, 0); m.castShadow = true;
+  m.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.5 }); s.add(m); bills.push({ cv, tex }); }
+window.frame = t => { NOW = t; bills.forEach((b, i) => { const g2 = b.cv.getContext('2d'); g2.clearRect(0, 0, 1024, 1536); person(g2, { ...{ robe: '#3f6fa8', stripes: ['#3f6fa8', '#d9c39a'], head: 'wrap', beard: 'short', satchel: true, belt: '#c49a5a' }, id: 'J' + i, x: 512, y: 1450, s: 2 }); b.tex.needsUpdate = true; });
+  cam.position.x = Math.sin(t) * 2; cam.lookAt(0, 1.2, 0); r.render(s, cam); return document.getElementById('c').toDataURL('image/jpeg', 0.9).length; };
+</script></body></html>

@@ -1,0 +1,24 @@
+# dependencies and regenerable output
+node_modules/
+jonah-short/frames/
+jonah-short/stills/
+jonah-short/*.png
+!jonah-short/video_sheet_3d.png
+# full-quality renders are regenerable; the share copies are committed
+jonah-short/out/jonah_short.mp4
+jonah-short/out/jonah_short_3d.mp4
+jonah-short/out/jonah_short_v1.mp4
+# reference material from Rick's Clips (source videos and extracted frames) stays out of the repo
+ricks-clips-style/metrics/*.mp4
+ricks-clips-style/metrics/review/
+ricks-clips-style/metrics/*_cuts.png
+ricks-clips-style/metrics/more_cuts.png
+ricks-clips-style/metrics/knight_sheet.png
+ricks-clips-style/characters/frames/
+ricks-clips-style/characters/check/
+ricks-clips-style/characters/g_*.png
+ricks-clips-style/characters/pick.png
+ricks-clips-style/characters/heads_check.png
+ricks-clips-style/characters/heads_zoom.png
+ricks-clips-style/refs/
+jonah-short/three/perf.png

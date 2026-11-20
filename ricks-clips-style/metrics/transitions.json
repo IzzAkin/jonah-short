@@ -1,0 +1,249 @@
+{
+ "_note": "Verified by eye from frame strips. Frames are 0-based at 30 fps. 'first'/'last' = first and last frame where both pictures are mixed or the wipe is on screen.",
+ "spear": [
+  {
+   "first": 355,
+   "last": 362,
+   "type": "dissolve",
+   "what": "aerial river valley -> top-down army formations"
+  },
+  {
+   "first": 568,
+   "last": 580,
+   "type": "dissolve (same framing)",
+   "what": "day -> night on the stalemate field (time passing)"
+  },
+  {
+   "first": 602,
+   "last": 614,
+   "type": "dissolve (same framing)",
+   "what": "night -> day on the stalemate field"
+  },
+  {
+   "first": 713,
+   "last": 721,
+   "type": "dissolve",
+   "what": "field at dusk -> war tent"
+  },
+  {
+   "first": 763,
+   "last": 783,
+   "type": "character wipe + dissolve",
+   "what": "messenger walks into camera through the tent curtain -> blacksmith's house at night"
+  },
+  {
+   "first": 840,
+   "last": 840,
+   "type": "hard cut",
+   "what": "blacksmith exterior -> interior"
+  },
+  {
+   "first": 991,
+   "last": 998,
+   "type": "dissolve",
+   "what": "workshop -> blueprint table"
+  },
+  {
+   "first": 1220,
+   "last": 1228,
+   "type": "dissolve",
+   "what": "forge -> king on the field"
+  },
+  {
+   "first": 1298,
+   "last": 1307,
+   "type": "dissolve",
+   "what": "field -> DAYS OF PEACE scoreboard"
+  }
+ ],
+ "knight": [
+  {
+   "first": 111,
+   "last": 115,
+   "type": "slide wipe",
+   "what": "pardon parchment slides off frame -> donkey cart"
+  },
+  {
+   "first": 144,
+   "last": 155,
+   "type": "foreground-object wipe",
+   "what": "camera trucks past a tree trunk -> harbour"
+  },
+  {
+   "first": 172,
+   "last": 188,
+   "type": "foreground-object wipe",
+   "what": "stack of fish crates slides across -> snowy town at night"
+  },
+  {
+   "first": 224,
+   "last": 231,
+   "type": "dissolve",
+   "what": "night cart -> price-of-sins board"
+  },
+  {
+   "first": 367,
+   "last": 372,
+   "type": "dissolve",
+   "what": "tall board -> queue at the stall"
+  },
+  {
+   "first": 489,
+   "last": 494,
+   "type": "dissolve",
+   "what": "priest close -> stall wide with knight"
+  },
+  {
+   "first": 568,
+   "last": 578,
+   "type": "dissolve",
+   "what": "stall -> extreme close-up of the pardon text"
+  },
+  {
+   "first": 624,
+   "last": 633,
+   "type": "dissolve",
+   "what": "pardon text -> sword close-up"
+  },
+  {
+   "first": 656,
+   "last": 664,
+   "type": "dissolve",
+   "what": "sword close-up -> stall wide"
+  },
+  {
+   "first": 731,
+   "last": 749,
+   "type": "dissolve",
+   "what": "stall -> aerial of the town"
+  },
+  {
+   "first": 806,
+   "last": 807,
+   "type": "hard cut (2-frame blend)",
+   "what": "forest canopy -> treasure chest"
+  },
+  {
+   "first": 891,
+   "last": 891,
+   "type": "hard cut",
+   "what": "forest path -> wider forest path with the two men"
+  },
+  {
+   "first": 939,
+   "last": 941,
+   "type": "quick dissolve",
+   "what": "knight close-up -> knight wide in the forest"
+  },
+  {
+   "first": 995,
+   "last": 999,
+   "type": "dissolve",
+   "what": "gold coin close-up -> priest"
+  },
+  {
+   "first": 1155,
+   "last": 1164,
+   "type": "dissolve",
+   "what": "pardon in the forest -> sunset ending"
+  }
+ ],
+ "jonah": [
+  {
+   "first": 139,
+   "last": 148,
+   "type": "dissolve",
+   "what": "jonah"
+  },
+  {
+   "first": 256,
+   "last": 265,
+   "type": "dissolve",
+   "what": "jonah"
+  },
+  {
+   "first": 328,
+   "last": 337,
+   "type": "dissolve",
+   "what": "jonah"
+  },
+  {
+   "first": 470,
+   "last": 495,
+   "type": "dip",
+   "what": "hatch dive"
+  },
+  {
+   "first": 520,
+   "last": 529,
+   "type": "dissolve",
+   "what": "jonah"
+  },
+  {
+   "first": 627,
+   "last": 636,
+   "type": "dissolve",
+   "what": "jonah"
+  },
+  {
+   "first": 679,
+   "last": 688,
+   "type": "dissolve",
+   "what": "jonah"
+  },
+  {
+   "first": 784,
+   "last": 793,
+   "type": "dissolve",
+   "what": "jonah"
+  },
+  {
+   "first": 875,
+   "last": 905,
+   "type": "flash",
+   "what": "spit"
+  },
+  {
+   "first": 1014,
+   "last": 1023,
+   "type": "dissolve",
+   "what": "jonah"
+  },
+  {
+   "first": 1120,
+   "last": 1129,
+   "type": "dissolve",
+   "what": "jonah"
+  },
+  {
+   "first": 1181,
+   "last": 1190,
+   "type": "dissolve",
+   "what": "jonah"
+  },
+  {
+   "first": 1303,
+   "last": 1312,
+   "type": "dissolve",
+   "what": "jonah"
+  },
+  {
+   "first": 1349,
+   "last": 1351,
+   "type": "hard cut",
+   "what": "furious"
+  },
+  {
+   "first": 1429,
+   "last": 1438,
+   "type": "dissolve",
+   "what": "jonah"
+  },
+  {
+   "first": 1546,
+   "last": 1555,
+   "type": "dissolve",
+   "what": "jonah"
+  }
+ ]
+}
