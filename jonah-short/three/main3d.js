@@ -8,6 +8,9 @@ const ENTER = { 2: 'dissolve', 3: 'dissolve', 4: 'dissolve', 5: 'dissolve', 6: '
 const HALF = 0.15;
 const SUBCUTS = subcuts(), HOLDS = holds();
 const GRADE = 'saturate(1.2) contrast(1.04) brightness(1.17)';
+// night grade measured from the samurai short: saturation 0.33-0.36 (our day grade pushed the storm to 0.52)
+const GRADE_NIGHT = 'saturate(0.78) contrast(1.06) brightness(1.12)';
+let NIGHT_SHOT = false;
 const gradeC = document.createElement('canvas'); gradeC.width = W; gradeC.height = H;
 const gradeG = gradeC.getContext('2d');
 
@@ -17,7 +20,7 @@ function drawShot(g, i, t) {
   for (const [h0, h1] of HOLDS) if (t >= h0 && t < h1) { lt -= t - h0; at = h0; }
   NOW = at; SHOT_N = SHOTS[i].n;
   // measured character lighting per set (direction is where the key light sits on screen)
-  const SL = { 1: ['storm', 0.3, -0.9], 2: ['golden', -0.9, -0.3], 3: ['storm', 0.4, -0.9], 4: ['storm', 0.4, -0.9], 5: ['storm', 0.1, -1], 6: ['storm', 0.3, -0.9], 7: ['golden', 0.3, -0.5], 8: ['day', 0.3, -0.95], 9: ['day', 0.2, -0.95], 10: ['day', -0.2, -0.98], 11: ['golden', 0.5, -0.4] }[SHOTS[i].n];
+  const SL = { 1: ['storm', 0.3, -0.9], 2: ['golden', -0.9, -0.3], 3: ['night', 0.4, -0.9], 4: ['night', 0.4, -0.9], 5: ['storm', 0.1, -1], 6: ['storm', 0.3, -0.9], 7: ['golden', 0.3, -0.5], 8: ['day', 0.3, -0.95], 9: ['day', 0.2, -0.95], 10: ['day', -0.2, -0.98], 11: ['golden', 0.5, -0.4] }[SHOTS[i].n];
   CHAR_LIGHT = { ...LIGHTS[SL[0]], x: SL[1], y: SL[2] };
   if (SHOTS[i].n === 3 && lt > wt(3, 'asleep')) CHAR_LIGHT = { ...LIGHTS.candle, x: 0.8, y: -0.4 };
   if (SHOTS[i].n === 1 || SHOTS[i].n === 6) CHAR_LIGHT = { ...CHAR_LIGHT, tint: '#cfe9e6', shade: '#7aa3a8', rim: '140,240,220' };
@@ -45,6 +48,7 @@ function caption(g, t) {
 }
 function renderFrame(t) {
   let i = SHOTS.findIndex(s => t >= s.a && t < s.b); if (i < 0) i = SHOTS.length - 1;
+  NIGHT_SHOT = SHOTS[i].n === 3 || SHOTS[i].n === 4;
   let blended = false;
   for (let j = 1; j < SHOTS.length; j++) {
     const b = SHOTS[j].a;
@@ -64,7 +68,7 @@ function renderFrame(t) {
   }
   vignette(ctx, 0.26);
   gradeG.clearRect(0, 0, W, H); gradeG.drawImage(canvas, 0, 0);
-  ctx.save(); ctx.filter = GRADE; ctx.clearRect(0, 0, W, H); ctx.drawImage(gradeC, 0, 0); ctx.restore();
+  ctx.save(); ctx.filter = NIGHT_SHOT ? GRADE_NIGHT : GRADE; ctx.clearRect(0, 0, W, H); ctx.drawImage(gradeC, 0, 0); ctx.restore();
   ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = 'rgb(16,12,10)'; ctx.fillRect(0, 0, W, H); ctx.restore();
   caption(ctx, t);
 }

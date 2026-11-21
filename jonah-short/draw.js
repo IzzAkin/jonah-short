@@ -176,6 +176,7 @@ const LIGHTS = {
   candle: { x: 0.9, y: 0.2, shade: '#aea3d4', frac: 0.30, rim: '255,190,120', rimA: 0.75, robeShade: 'rgba(30,20,70,0.45)', tint: '#efe0e5' },
   fire:   { x: 0.7, y: 0.1, shade: '#d6be85', frac: 0.16, rim: '255,170,80', rimA: 0.70, robeShade: 'rgba(70,30,10,0.40)', tint: '#fdeebc' },
   storm:  { x: -0.3, y: -0.9, shade: '#7d86a8', frac: 0.30, rim: '200,220,255', rimA: 0.45, robeShade: 'rgba(15,20,45,0.45)', tint: '#c9d3e6' },
+  night:  { x: 0.6, y: -0.6, shade: '#b29390', frac: 0.34, rim: '215,228,255', rimA: 0.9, robeShade: 'rgba(12,12,35,0.62)', tint: '#dcd6e8' },   // samurai short: shade/lit 0.67, 34 % in shade, strong moon rim, cloth 0.26-0.44
 };
 let CHAR_LIGHT = LIGHTS.day;
 const hexA = (hex, a) => { const c = parseInt(hex.slice(1), 16); return `rgba(${c >> 16 & 255},${c >> 8 & 255},${c & 255},${a})`; };

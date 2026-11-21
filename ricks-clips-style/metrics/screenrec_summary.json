@@ -1,0 +1,149 @@
+{
+ "v3": {
+  "unique_frames": 250,
+  "luma_mean": 73.3,
+  "luma_p5": 24.9,
+  "luma_p95": 213.2,
+  "shadow_pct_below_40_median": 25.97,
+  "shadow_pct_below_40_mean": 23.86,
+  "sat_mean": 0.36,
+  "colorfulness": 43.7,
+  "rgb_mean": [
+   79.0,
+   71.1,
+   78.4
+  ],
+  "cut_candidates_unique_frame_idx": [
+   [
+    48,
+    0.402
+   ],
+   [
+    64,
+    0.158
+   ],
+   [
+    137,
+    0.296
+   ],
+   [
+    210,
+    0.585
+   ],
+   [
+    221,
+    0.172
+   ]
+  ]
+ },
+ "v4": {
+  "unique_frames": 241,
+  "luma_mean": 61.8,
+  "luma_p5": 29.3,
+  "luma_p95": 146.0,
+  "shadow_pct_below_40_median": 35.63,
+  "shadow_pct_below_40_mean": 35.58,
+  "sat_mean": 0.348,
+  "colorfulness": 33.7,
+  "rgb_mean": [
+   63.9,
+   60.2,
+   71.6
+  ],
+  "cut_candidates_unique_frame_idx": [
+   [
+    58,
+    0.249
+   ],
+   [
+    100,
+    0.18
+   ],
+   [
+    176,
+    0.213
+   ],
+   [
+    177,
+    0.173
+   ],
+   [
+    209,
+    0.259
+   ]
+  ]
+ },
+ "v5": {
+  "unique_frames": 171,
+  "luma_mean": 90.5,
+  "luma_p5": 39.0,
+  "luma_p95": 163.6,
+  "shadow_pct_below_40_median": 10.19,
+  "shadow_pct_below_40_mean": 17.89,
+  "sat_mean": 0.332,
+  "colorfulness": 46.7,
+  "rgb_mean": [
+   94.2,
+   89.0,
+   94.9
+  ],
+  "cut_candidates_unique_frame_idx": [
+   [
+    29,
+    0.184
+   ],
+   [
+    51,
+    0.444
+   ],
+   [
+    55,
+    0.252
+   ],
+   [
+    59,
+    0.221
+   ],
+   [
+    76,
+    0.412
+   ],
+   [
+    119,
+    0.16
+   ],
+   [
+    142,
+    0.399
+   ],
+   [
+    143,
+    0.42
+   ],
+   [
+    144,
+    0.638
+   ],
+   [
+    148,
+    0.607
+   ],
+   [
+    149,
+    0.271
+   ],
+   [
+    150,
+    0.625
+   ],
+   [
+    151,
+    0.502
+   ],
+   [
+    152,
+    0.455
+   ]
+  ]
+ }
+}

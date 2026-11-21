@@ -137,6 +137,9 @@ function makeShip() {
   sc.fog = new T3.Fog(col('#26364a'), 18, 110);
   const L = lights(sc, { sky: '#7088aa', ground: '#3a2a20', hemi: 1.0, sun: '#aac4ff', sunI: 1.3, dir: [10, 16, 12], target: [5, 0, 0], extent: 18 });
   for (let i = 0; i < 7; i++) cloud3(sc, [-30 + i * 14, 16 + (i % 2) * 4, -45 - (i % 3) * 8], 3.2, '#46546b', 10 + i);
+  // bright accents measured as missing (night p95 146-213): moon glow behind the clouds and deck lanterns
+  sunSprite(sc, [-18, 22, -60], 40, 'rgba(225,235,255,0.95)', 'rgba(150,170,220,0)');
+  [[-2, 2.2, -3.2], [9.5, 2.2, -3.2]].forEach(p => { box(sc, 0.25, 0.35, 0.25, '#ffcf73', p, { emissive: '#ffb040', ei: 1.3 }); sunSprite(sc, p, 2.4, 'rgba(255,210,140,0.95)', 'rgba(255,150,60,0)'); });
   const sea = water(sc, 320, 320, '#1d3850', { y: -1.6, amp: 0.55, len: 4.2, sp: 1.7, ei: 0.12 });
   const ship = new T3.Group(); sc.add(ship);
   box(ship, 28, 0.3, 7.4, '#9a6a40', [5, -0.15, 0], { map: texPlanks('#9a6a40', 'rgba(40,20,10,0.55)', [8, 3]), ol: 0.03 });

@@ -65,6 +65,23 @@ Each preset sets:
 
 The 3D sets now apply the matching preset per shot, and every character card takes the scene's tint.
 
+### Night (samurai short, screen recording)
+
+| Head | Lit RGB | Shade RGB | Shade/lit luma | Head in shade | Rim light | Cloth shade/lit |
+|---|---|---|---|---|---|---|
+| Samurai, moon + campfire | 248,230,217 (warm, from the fire) | 216,194,196 | 0.85 | 12 % | (hair covers the edge) | 0.44 |
+| Armoured samurai, moon | 239,225,223 | 178,147,144 | **0.67** | **34 %** | **strong: median +56, p90 +165** | **0.26** |
+
+At night the cloth goes much darker (0.26–0.44 against 0.6 by day), and a bright cool rim runs along the moonlit edge.
+
+A new `night` preset in `draw.js` uses these values:
+- shade `#B29390`, covering 34 % of the head
+- rim `215,228,255` at 0.9
+- cloth shade 0.62
+- tint `#DCD6E8`
+
+The 3D storm shots (3 and 4) now use it.
+
 ## 4. Sheets
 In `characters/sheets/`:
 - `sheet_jonah.png`

@@ -216,3 +216,44 @@ v2 was measured with the same `analyze.py`. The blink count comes from a frame-b
 | Warm bias (red over blue) | +15 to +37 | +21 | **+32** ✓ |
 
 **Note on movement inside the frame.** This figure counts every pixel that changes once the camera move is taken out. In Rick's Clips, much of it comes from painted texture and multi-layer parallax, which shift slightly against each other as the camera moves. Our flat vector fills produce very little of that. Adding more motes moved the number by only about 0.1 and made the scenes look like snow. Reaching 2 % or more needs textured backgrounds or more character animation, not more particles.
+
+---
+
+## 8. Night film: "Why Samurai Feared The Flying Thunder" (screen recordings, Nov 21)
+
+**Source:** three phone screen recordings, `v3`/`v4`/`v5`, totalling 28.5 s.
+- **Resolution:** the 9:16 picture is only 596 px wide, about 55 % of a 1080p source.
+- **Overlays:** the app's icons, title, comment bubbles and captions are masked (`metrics/analyze_screenrec.py`).
+- **Duplicates:** 17–30 % of frames repeat because of the capture cadence. They're dropped before measuring.
+- **Not measured, because unreliable from this source:** camera motion per frame, transition lengths, blinks.
+- **Better source:** the original 1080p download would allow these.
+
+| | v3 | v4 | v5 | Day films (spear/knight) |
+|---|---|---|---|---|
+| Average brightness | 73 | 62 | 91 | 127–138 |
+| Shadow level (darkest 5 %) | 25 | 29 | 39 | 56–60 |
+| Highlight level (brightest 5 %) | 213 | 146 | 164 | 207–226 |
+| Pixels darker than 40 (median) | 26 % | 36 % | 10 % | 0.8–1.3 % |
+| Saturation | 0.36 | 0.35 | 0.33 | 0.45 |
+| Colourfulness | 44 | 34 | 47 | 70–78 |
+| Average R/G/B | 79/71/78 | 64/60/72 | 94/89/95 | warm (R > G > B) |
+
+**What this means in practice**
+- **Brightness:** night is about half the brightness of day.
+- **Shadows:** genuinely dark shadows; a quarter to a third of the frame sits under 40.
+- **Colour:** about 25 % less saturated than day, and cool or neutral (blue at or above red), not warm.
+- **Highlights:** bright accents stay in the frame (moon, fires, glints), so the brightest 5 % still reaches 146–213.
+
+**Jonah 3D storm shots (3–4)**
+
+| | Before | Now | Night target |
+|---|---|---|---|
+| Average brightness | 58–63 | 63 | 62–91 ✓ |
+| Highlights | 117 | 161 | 146–213 ✓ |
+| Pixels darker than 40 | 27–43 % | 34 % | 10–36 % ✓ |
+| Saturation | 0.52 | 0.37 | 0.33–0.36 ✓ |
+
+How we got there:
+- a night grade, `GRADE_NIGHT` in `three/main3d.js`
+- a moon glow behind the clouds
+- two deck lanterns

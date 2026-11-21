@@ -1,0 +1,191 @@
+[
+ {
+  "frame": "sr_v3_3.0",
+  "who": "samurai (moonlit)",
+  "light": "night, moon + campfire",
+  "head_d_px": 208,
+  "outline_px": null,
+  "outline_over_d": null,
+  "outline_rgb": [
+   0,
+   0,
+   0
+  ],
+  "head_lit_rgb": [
+   248,
+   230,
+   217
+  ],
+  "head_shade_rgb": [
+   216,
+   194,
+   196
+  ],
+  "head_shade_to_lit_luma": 0.852,
+  "head_shade_fraction": 0.12,
+  "shade_side_deg": 143,
+  "shade_offset_over_d": 0.221,
+  "rim_light_luma_median": null,
+  "rim_light_luma_p90": null,
+  "frame_mean_rgb": [
+   62,
+   56,
+   68
+  ],
+  "features": [
+   {
+    "x": -0.039,
+    "y": -0.293,
+    "w": 0.788,
+    "h": 0.37,
+    "area": 0.0752
+   },
+   {
+    "x": 0.19,
+    "y": -0.109,
+    "w": 0.173,
+    "h": 0.058,
+    "area": 0.0066
+   },
+   {
+    "x": -0.283,
+    "y": 0.062,
+    "w": 0.303,
+    "h": 0.25,
+    "area": 0.041
+   },
+   {
+    "x": 0.001,
+    "y": -0.047,
+    "w": 0.192,
+    "h": 0.053,
+    "area": 0.0074
+   },
+   {
+    "x": -0.016,
+    "y": 0.09,
+    "w": 0.188,
+    "h": 0.101,
+    "area": 0.0105
+   },
+   {
+    "x": 0.198,
+    "y": 0.086,
+    "w": 0.168,
+    "h": 0.091,
+    "area": 0.0086
+   },
+   {
+    "x": 0.093,
+    "y": 0.289,
+    "w": 0.13,
+    "h": 0.062,
+    "area": 0.0041
+   }
+  ],
+  "body": {
+   "lit_rgb": [
+    216,
+    129,
+    94
+   ],
+   "shade_rgb": [
+    131,
+    47,
+    40
+   ],
+   "shade_to_lit_luma": 0.444
+  }
+ },
+ {
+  "frame": "sr_v5_6.0",
+  "who": "armoured samurai",
+  "light": "night, moon",
+  "head_d_px": 184,
+  "outline_px": 11.5,
+  "outline_over_d": 0.0625,
+  "outline_rgb": [
+   41,
+   30,
+   37
+  ],
+  "head_lit_rgb": [
+   239,
+   225,
+   223
+  ],
+  "head_shade_rgb": [
+   178,
+   147,
+   144
+  ],
+  "head_shade_to_lit_luma": 0.674,
+  "head_shade_fraction": 0.34,
+  "shade_side_deg": 93,
+  "shade_offset_over_d": 0.048,
+  "rim_light_luma_median": 55.7,
+  "rim_light_luma_p90": 164.6,
+  "frame_mean_rgb": [
+   91,
+   91,
+   109
+  ],
+  "features": [
+   {
+    "x": -0.1,
+    "y": -0.386,
+    "w": 0.06,
+    "h": 0.033,
+    "area": 0.0012
+   },
+   {
+    "x": -0.022,
+    "y": -0.218,
+    "w": 0.799,
+    "h": 0.37,
+    "area": 0.1611
+   },
+   {
+    "x": 0.102,
+    "y": -0.04,
+    "w": 0.196,
+    "h": 0.13,
+    "area": 0.0115
+   },
+   {
+    "x": -0.168,
+    "y": -0.014,
+    "w": 0.196,
+    "h": 0.125,
+    "area": 0.0114
+   },
+   {
+    "x": 0.062,
+    "y": 0.305,
+    "w": 0.766,
+    "h": 0.342,
+    "area": 0.0666
+   },
+   {
+    "x": -0.011,
+    "y": 0.178,
+    "w": 0.386,
+    "h": 0.163,
+    "area": 0.0257
+   }
+  ],
+  "body": {
+   "lit_rgb": [
+    188,
+    161,
+    106
+   ],
+   "shade_rgb": [
+    51,
+    40,
+    39
+   ],
+   "shade_to_lit_luma": 0.262
+  }
+ }
+]
