@@ -82,6 +82,56 @@ A new `night` preset in `draw.js` uses these values:
 
 The 3D storm shots (3 and 4) now use it.
 
+## 3b. Rig v3: construction, attire and expressions (measured on 3 films, Nov 21)
+
+**Sources:**
+- the priest (knight film)
+- the blacksmith and kings (spear film)
+- six samurai characters (night film, screen recordings)
+
+**Body: a capsule, not a trapezoid.** Measured on the priest:
+
+| | Measured | Rig |
+|---|---|---|
+| Width at shoulder | 0.89 D | 0.88 D |
+| Width at middle | 0.83 D | 0.88 D |
+| Width at hem | 0.86 D | 0.90 D |
+| Shoulder corner radius | ≈ 0.3 D | 0.3 D |
+| Hem corner radius | ≈ 0.15 D | 0.15 D |
+| Robe length | 2.2 D | 2.2 D |
+| Robe legs | 0.5 D | 0.5 D |
+| Tunic body | ≈ 1.4 D | 1.4 D |
+| Tunic legs | ≈ 1.0 D (samurai) | 1.0 D |
+| Hands | small ink nubs (≈ 0.1 D), never white balls | ink nub |
+| Shoes | small dark ovals ≈ 0.18 D | dark ovals |
+
+**Attire is layered on the capsule, never shaped into it**
+
+| Layer | Placement | Rig option |
+|---|---|---|
+| Upper vestment | top 45 % of the body | `upper`, `upperStripe` |
+| Hem band | 0.08 D at the bottom | part of `trim` |
+| Centre trim | 0.1 D wide | `trim` |
+| Collar V | ≈ 0.25 D deep | `collar` |
+| Armour panel (samurai) | 0.16 D below the shoulder down to 62 % of the body; rows of cream dots every ≈ 0.16 D | `armor` |
+| Apron (blacksmith) | 0.72 D wide, with two pockets | `apron` |
+
+**Headwear** sits on the top third of the head and overlaps it: crown, helmet, hood, cap, topknot, wrap tails.
+
+**Expressions catalogued**
+
+| | Types |
+|---|---|
+| Eyes | dot; **smug half-lid** (the most common default face); wide with pupils; happy arcs; closed; **star eyes** (greed); **glowing red** (menace); blink line |
+| Brows | thick and tapered; often **asymmetric**, one raised (`skeptic`) |
+| Mouths | **smirk** (one-sided); **toothy grin** (white with tooth lines); **open laugh** with tongue and top teeth; o; gritted teeth; wobbly; frown |
+| Extras | sweat drop; cheek patches |
+
+All of these are in `draw.js`. The sheets now show:
+- the smug face as the default
+- a laugh and a grin
+- the night (moonlit) preset as a sixth lighting tile
+
 ## 4. Sheets
 In `characters/sheets/`:
 - `sheet_jonah.png`

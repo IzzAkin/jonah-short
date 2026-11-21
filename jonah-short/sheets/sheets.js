@@ -51,11 +51,12 @@ const LTILE = {
   candle: ['Night, candle', ['#251f48', '#5a3f6a'], '#3a2a30', 'tint #EFE0E5 · cool shade #AEA3D4 · 30% · warm rim'],
   fire: ['Forge / fire', ['#6a2a10', '#e88a3a'], '#5a3018', 'tint #FDEEBC · shade #D6BE85 · 16% · orange rim'],
   storm: ['Storm / overcast', ['#121b2b', '#2c3d55'], '#4a3a2a', 'tint #C9D3E6 · shade #7D86A8 · 30% · cold rim'],
+  night: ['Night, moonlit', ['#1a2238', '#3a4a6a'], '#3a3630', 'tint #DCD6E8 · shade #B29390 · 34% · dark cloth'],
 };
 function lightingStrip(opts, y) {
   text('LIGHTING', 60, y - 18, 30);
-  text('measured from the reference: head shade/lit ≈ 0.70, cloth shade ≈ 0.60, rim light outside the ink on the light side, whole figure tinted by the scene light', 260, y - 20, 20, SUB, 800);
-  const keys = Object.keys(LTILE), w = (SW - 120 - 4 * 24) / 5;
+  text('measured from 3 films: head shade/lit 0.67–0.80, cloth 0.60 by day and 0.26–0.44 at night, rim light outside the ink on the light side, figure tinted by the scene light', 260, y - 20, 19, SUB, 800);
+  const keys = Object.keys(LTILE), w = (SW - 120 - 5 * 24) / 6;
   keys.forEach((k, i) => {
     const x = 60 + i * (w + 24), [name, sky, gnd, note] = LTILE[k];
     g.save(); rrect(g, x, y, w, 400, 22); g.clip();
@@ -68,7 +69,7 @@ function lightingStrip(opts, y) {
     g.save(); g.fillStyle = 'rgba(0,0,0,0.25)'; ell(g, x + w / 2 - L.x * 40, fy + 4, 70, 12); g.fill(); g.restore();
     charTint(g, SW, SH, L.tint, gg => opts ? person(gg, { ...opts, x: x + w / 2, y: fy, s, idle: false }) : fish(gg, x + w / 2, fy - 120, 0.17, 0, 0));
     g.restore();
-    text(name, x + 18, y + 40, 24, k === 'day' ? INKC : '#fff', 900); text(note, x + 18, y + 392, 15, k === 'day' ? INKC : 'rgba(255,255,255,0.92)', 800);
+    text(name, x + 18, y + 40, 24, k === 'day' ? INKC : '#fff', 900); text(note, x + 14, y + 392, 13, k === 'day' ? INKC : 'rgba(255,255,255,0.92)', 800);
     CHAR_LIGHT = LIGHTS.day;
   });
 }
@@ -81,8 +82,8 @@ function standard(c) {
   background(); header(c.name, c.sub);
   panel(40, 170, 700, 830); bust(c.bustOpts || c.base, 390, 585, 330, 2.9); label('CLOSE-UP', 390, 975);
   panel(760, 170, 900, 830);
-  const s = 1.3, fy = 945;
-  guide(830, fy, s, [[0, '0'], [0.45, '0.45 D'], [1, '1 D'], [2, '2 D'], [2.45, '2.45 D'], [3, '3 D'], [3.53, '3.5 D']]);
+  const s = 1.18, fy = 950;
+  guide(830, fy, s, [[0, '0'], [0.5, '0.5 D'], [1, '1 D'], [2, '2 D'], [2.7, '2.7 D'], [3.6, '3.6 D']]);
   groundShadow(1000, fy, 170); person(g, { ...c.base, ...c.front, x: 1000, y: fy, s, idle: false });
   groundShadow(1400, fy, 170); person(g, { ...c.base, ...(c.turnBase || {}), ...c.turned, x: 1400, y: fy, s, idle: false });
   label(c.frontLabel || 'FRONT · facing right', 1000, 988); label(c.turnedLabel || 'TURNED · facing left', 1400, 988);
@@ -91,7 +92,7 @@ function standard(c) {
   c.expr.forEach(([n, o], i) => headTile({ ...c.base, ...o }, 1710 + (i % 3) * 215, 245 + Math.floor(i / 3) * 255, 190, n));
   text('PALETTE', 1710, 768, 26); swatches(c.palette, 1710, 786, 3);
   lightingStrip({ ...c.base, ...c.front }, 1060);
-  footer('Rig measured from reference frames · head diameter D: total 3.5 D · robe 2.0 D · legs 0.45 D · shoulders 0.8 D · hem 1.1 D · ink 0.035 D · eyes 0.075 D, 0.27 D apart, at head-centre height · brows 0.19 × 0.06 D · mouth +0.25 D');
+  footer('Rig v3, measured on 3 films · capsule body 2.2 D (tunic 1.4 D), sides 0.86–0.89 D, shoulder radius 0.3 D, hem radius 0.15 D · legs 0.5 D (tunic 1.0 D) · ink-nub hands · ink 0.035 D · eyes 0.075 D, 0.27 D apart · brows 0.19 × 0.06 D · hem band 0.08 D');
 }
 // --------------------------------------------------------------- lineup sheet for groups
 function lineup(c) {
@@ -127,32 +128,32 @@ function fishSheet() {
 const SHEETS = {
   jonah: () => standard({
     name: 'JONAH', sub: 'The prophet. Sand-coloured head wrap tied at the back, short dark beard, long blue-and-tan striped robe, rope belt, leather satchel across the chest, sandals. One feeling per line; the red-faced fury appears once.',
-    base: { ...JONAH, idle: false }, front: { dir: 1 }, turned: { dir: -1, arms: { l: [150, 165], r: [14, 4] }, brows: 'flat', mouth: 'open' }, turnedLabel: 'TURNED · proclaiming',
-    expr: [['Neutral', {}], ['Worried', { eyes: 'wide', brows: 'worried', mouth: 'wobbly', sweat: true }], ['Proclaiming', { brows: 'flat', mouth: 'open' }],
-      ['Praying', { eyes: 'closed', brows: 'flat' }], ['Asleep', { eyes: 'closed', mouth: 'o', brows: 'soft' }], ['Furious', { red: true, eyes: 'angry', brows: 'angry', mouth: 'grit' }]],
+    base: { ...JONAH, idle: false, shoes: '#7a4a2a' }, front: { dir: 1, eyes: 'smug', brows: 'skeptic', mouth: 'smirk' }, turned: { dir: -1, arms: { l: [150, 165], r: [14, 4] }, brows: 'flat', mouth: 'open' }, turnedLabel: 'TURNED · proclaiming',
+    expr: [['Smug (default)', { eyes: 'smug', brows: 'skeptic', mouth: 'smirk' }], ['Worried', { eyes: 'wide', brows: 'worried', mouth: 'wobbly', sweat: true }], ['Proclaiming', { brows: 'flat', mouth: 'open' }],
+      ['Praying', { eyes: 'closed', brows: 'flat' }], ['Relieved laugh', { eyes: 'happy', brows: 'soft', mouth: 'laugh' }], ['Furious', { red: true, eyes: 'angry', brows: 'angry', mouth: 'grit' }]],
     palette: [['Robe blue', '#3f6fa8'], ['Robe tan', '#d9c39a'], ['Head wrap', '#d9c08f'], ['Beard', '#3a2a20'], ['Rope belt', '#c49a5a'], ['Satchel', '#8a5530'], ['Head', '#fdf6f0'], ['Ink', '#3d2d24'], ['Sandals', '#7a4a2a']],
   }),
   king: () => standard({
     name: 'KING OF NINEVEH', sub: 'Tall cylindrical red-and-gold crown, long black beard in tight curls, deep-red robe with gold borders, gold sceptre. In the ashes scene: plain brown sackcloth, crown and robe set aside, never worn.',
-    base: { id: 'K', robe: '#8f1f24', trim: '#e0b03a', head: 'crown', beard: 'curly', brows: 'flat', idle: false },
-    front: { dir: 1, hold: sceptre(g), arms: { l: [14, 4], r: [30, -20] } }, turnBase: { robe: '#8b6b47', trim: null, sack: true, head: null },
+    base: { id: 'K', robe: '#8f1f24', trim: '#e0b03a', collar: '#e0b03a', upper: '#a8282c', head: 'crown', beard: 'curly', brows: 'flat', eyes: 'smug', idle: false },
+    front: { dir: 1, hold: sceptre(g), arms: { l: [14, 4], r: [30, -20] } }, turnBase: { robe: '#8b6b47', trim: null, collar: null, upper: null, sack: true, head: null },
     turned: { dir: -1, bow: 0.3, eyes: 'closed', brows: 'worried', mouth: 'frown', arms: CLASP }, turnedLabel: 'SACKCLOTH · repenting',
-    expr: [['Stern', {}], ['Proud', { brows: 'raised', mouth: 'smile' }], ['Shocked', { eyes: 'wide', brows: 'raised', mouth: 'o' }],
-      ['Humbled', { eyes: 'closed', brows: 'worried', mouth: 'frown' }], ['Sackcloth', { sack: true, trim: null, robe: '#8b6b47', head: null, eyes: 'closed', brows: 'worried', mouth: 'line' }], ['Relieved', { eyes: 'happy', brows: 'soft', mouth: 'smile' }]],
+    expr: [['Stern', { brows: 'skeptic' }], ['Proud grin', { eyes: 'dot', brows: 'raised', mouth: 'grin' }], ['Shocked', { eyes: 'wide', brows: 'raised', mouth: 'o', sweat: true }],
+      ['Humbled', { eyes: 'closed', brows: 'worried', mouth: 'frown' }], ['Sackcloth', { sack: true, trim: null, collar: null, upper: null, robe: '#8b6b47', head: null, eyes: 'closed', brows: 'worried', mouth: 'line' }], ['Relieved', { eyes: 'happy', brows: 'soft', mouth: 'laugh' }]],
     palette: [['Robe red', '#8f1f24'], ['Gold', '#e0b03a'], ['Crown red', '#b5302d'], ['Beard', '#1e1a1c'], ['Sackcloth', '#8b6b47'], ['Ash', '#aaa6a0'], ['Head', '#fdf6f0'], ['Ink', '#3d2d24']],
   }),
   sailors: () => lineup({
     name: 'THE SAILORS', sub: 'Four sailors in short tunics, told apart by a red headscarf, a blue cap, a bald head with a full beard, and a green headband. In the storm each prays a different way.',
-    people: [['Red headscarf', { ...SAILORS[0], dir: 1 }], ['Blue cap', { ...SAILORS[1], dir: 1, mustache: true, beardCol: '#3a2a20' }], ['Bald, full beard', { ...SAILORS[2], dir: -1 }], ['Green headband', { ...SAILORS[3], dir: -1 }],
+    people: [['Red headscarf', { ...SAILORS[0], dir: 1, eyes: 'smug', mouth: 'smirk', collar: '#c8423a' }], ['Blue cap', { ...SAILORS[1], dir: 1, mustache: true, beardCol: '#3a2a20', mouth: 'grin', apron: '#6e5a44' }], ['Bald, full beard', { ...SAILORS[2], dir: -1, brows: 'skeptic' }], ['Green headband', { ...SAILORS[3], dir: -1, eyes: 'happy', mouth: 'laugh', collar: '#3f9a5a' }],
       ['…praying: arms up', { ...SAILORS[0], dir: 1, arms: { l: [165, 172], r: [165, 172] }, eyes: 'wide', brows: 'worried', mouth: 'open' }], ['…hands clasped', { ...SAILORS[1], dir: -1, arms: CLASP, eyes: 'closed', brows: 'worried', mouth: 'wobbly', mustache: true, beardCol: '#3a2a20' }],
       ['…kneeling, bowed', { ...SAILORS[2], dir: 1, pose: 'kneel', bow: 0.6, arms: { l: [120, 160], r: [120, 160] }, eyes: 'closed', brows: 'worried' }], ['…palms up', { ...SAILORS[3], dir: -1, arms: { l: [70, 125], r: [70, 125] }, eyes: 'wide', brows: 'worried', mouth: 'o' }]],
     scale: 1.2,
   }),
   townspeople: () => lineup({
     name: 'PEOPLE OF NINEVEH', sub: 'A mix of men, women and children in colourful robes; rough brown sackcloth after the warning. Never identical clones: vary headwear, hair, beards, robe colours and height.',
-    people: [['Woman, gold veil', { robe: '#c94b3a', head: 'veil', headCol: '#e6c46a', dir: 1, mouth: 'smile' }], ['Man, dark hair', { robe: '#e1a23c', head: 'hair', headCol: '#2e2420', dir: 1, mustache: true }],
-      ['Elder, grey beard', { robe: '#4a8fc4', beard: 'full', beardCol: '#9a9a9a', dir: -1, brows: 'flat' }], ['Woman, blue veil', { robe: '#7a5aa8', head: 'veil', headCol: '#5aa0c4', dir: 1 }],
-      ['Child', { robe: '#3f9a6a', head: 'hair', headCol: '#5a3d28', dir: 1, k: 0.66, mouth: 'smile' }], ['Merchant', { robe: '#d6795a', head: 'hair', headCol: '#5a3d28', beard: 'short', beardCol: '#5a3d28', dir: -1 }],
+    people: [['Woman, gold veil', { robe: '#c94b3a', upper: '#e6c46a', head: 'veil', headCol: '#e6c46a', dir: 1, mouth: 'smile' }], ['Man, dark hair', { robe: '#e1a23c', apron: '#8a5a35', head: 'hair', headCol: '#2e2420', dir: 1, mustache: true, eyes: 'smug', mouth: 'smirk' }],
+      ['Elder, grey beard', { robe: '#4a8fc4', upper: '#2f6f8f', beard: 'full', beardCol: '#9a9a9a', dir: -1, brows: 'skeptic' }], ['Woman, blue veil', { robe: '#7a5aa8', head: 'veil', headCol: '#5aa0c4', dir: 1 }],
+      ['Child', { robe: '#3f9a6a', head: 'hair', headCol: '#5a3d28', dir: 1, k: 0.66, mouth: 'smile' }], ['Merchant', { robe: '#d6795a', trim: '#f2c94c', collar: '#f2c94c', head: 'hair', headCol: '#5a3d28', beard: 'short', beardCol: '#5a3d28', dir: -1, eyes: 'stars', mouth: 'grin' }],
       ['Woman, pink veil', { robe: '#2f6f8f', head: 'veil', headCol: '#b8487a', dir: -1, mouth: 'smile' }], ['Child', { robe: '#b8487a', head: 'veil', headCol: '#8cbf4a', dir: -1, k: 0.62 }]],
     row2Title: 'AFTER THE WARNING: sackcloth, kneeling',
     row2: [['', { sack: true, head: 'veil', headCol: '#9c8664', pose: 'kneel', bow: 0.55, arms: CLASP, eyes: 'closed', brows: 'worried', dir: 1 }], ['', { sack: true, head: 'hair', headCol: '#2e2420', pose: 'kneel', bow: 0.55, arms: CLASP, eyes: 'closed', brows: 'worried', dir: 1, mustache: true }],

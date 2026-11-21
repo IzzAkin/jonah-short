@@ -193,7 +193,7 @@ function person(g, o) {
     robe: '#8a7a6a', stripes: null, trim: null, tunic: false, sack: false,
     arms: { l: [12, 6], r: [12, 6] }, head: null, headCol: '#d9c08f', beard: null, beardCol: '#3a2a20',
     eyes: 'dot', brows: null, mouth: 'line', look: 0, back: false, red: false, bow: 0,
-    belt: null, satchel: false, sweat: false, seaweed: false, hold: null, holdL: null,
+    belt: null, satchel: false, upper: null, upperStripe: null, armor: null, apron: null, collar: null, shoes: null, sweat: false, seaweed: false, hold: null, holdL: null,
     id: null, crowd: false, xb: null, idle: true, mustache: false,
   }, o);
   const id = d.id || `${d.robe}|${d.head}|${d.headCol}|${d.s.toFixed(2)}|${d.beard}`;
@@ -209,17 +209,19 @@ function person(g, o) {
   // total height ~3.5 D, robe 2.0 D (tunic 1.6 D), legs 0.45 D (tunic 0.75 D), shoulders 0.8 D, hem 1.1 D,
   // head overlaps the top of the body by 0.08 D.
   const R = 70, D = 140;
-  const legH = (d.tunic ? 0.75 : 0.45) * D, bodyH = (d.tunic ? 1.6 : 2.0) * D * (sit ? 0.72 : 1);
+  // v3 (measured on the priest and the samurai): capsule body, nearly straight sides 0.86-0.89 D,
+  // shoulder corners rounded 0.3 D, hem corners 0.15 D; robe 2.2 D + legs 0.5 D; tunic 1.4 D + legs 1.0 D.
+  const legH = (d.tunic ? 1.0 : 0.5) * D, bodyH = (d.tunic ? 1.4 : 2.2) * D * (sit ? 0.72 : 1);
   const hemY = sit ? -24 : -legH;
   const shY = d.pose === 'hands' ? -150 : hemY - bodyH;
-  const topW = 0.4 * D, botW = (d.tunic ? 0.48 : 0.55) * D + (sit ? 18 : 0);
+  const topW = 0.44 * D, botW = 0.45 * D + (sit ? 18 : 0);
   const hx = d.bow * 46 * d.dir + (d.pose === 'hands' ? d.dir * 120 : 0);
   const hy = shY - R + 0.08 * D + d.bow * 30 + (d.pose === 'hands' ? 40 : 0);
 
   // legs
   const leg = (x0, y0, x1, y1) => {
-    line(g, x0, y0, x1, y1, 6.3);
-    ell(g, x1 + d.dir * 8, y1 - 4, 15, 7); fs(g, '#7a4a2a', 4);
+    line(g, x0, y0, x1, y1, 5);
+    ell(g, x1 + d.dir * 6, y1 - 4, 13, 6); fs(g, d.shoes || '#3a2a24', 3);
   };
   if (!sit) {
     const sw = d.walk == null ? 0 : Math.sin(d.walk) * 30;
@@ -242,9 +244,9 @@ function person(g, o) {
   };
   const drawArm = (side, a, item) => {
     const [ex, ey, hx2, hy2] = armPts(side, a);
-    g.beginPath(); g.moveTo(side * sx, sy); g.lineTo(ex, ey); g.lineTo(hx2, hy2); stroke(g, 6.3);
+    g.beginPath(); g.moveTo(side * sx, sy); g.lineTo(ex, ey); g.lineTo(hx2, hy2); stroke(g, 5);
     if (item) item(hx2, hy2);
-    circle(g, hx2, hy2, 10); fs(g, HEAD, 4);
+    circle(g, hx2, hy2, 7); fill(g, OUT);
   };
 
   // body (breathing bob lifts everything above the legs)
@@ -252,20 +254,38 @@ function person(g, o) {
   g.save();
   if (d.pose === 'hands') { g.translate(0, -10); g.rotate(d.dir * 1.05); g.translate(0, 60); }
   const bodyPath = () => {
+    const rt = 0.3 * D, rb = 0.15 * D;
     g.beginPath();
-    g.moveTo(-topW + 12, shY);
-    g.lineTo(topW - 12, shY);
-    g.quadraticCurveTo(topW, shY, topW + 2, shY + 16);
-    g.lineTo(botW, hemY - 4);
-    g.quadraticCurveTo(0, hemY + 12, -botW, hemY - 4);
-    g.lineTo(-topW - 2, shY + 16);
-    g.quadraticCurveTo(-topW, shY, -topW + 12, shY);
+    g.moveTo(-topW + rt, shY);
+    g.lineTo(topW - rt, shY);
+    g.quadraticCurveTo(topW, shY, topW, shY + rt);
+    g.lineTo(botW, hemY - rb);
+    g.quadraticCurveTo(botW, hemY, botW - rb, hemY);
+    g.lineTo(-botW + rb, hemY);
+    g.quadraticCurveTo(-botW, hemY, -botW, hemY - rb);
+    g.lineTo(-topW, shY + rt);
+    g.quadraticCurveTo(-topW, shY, -topW + rt, shY);
     g.closePath();
   };
   bodyPath(); fill(g, d.sack ? '#8b6b47' : d.robe);
   g.save(); bodyPath(); g.clip();
   if (d.stripes) { for (let i = -6; i < 7; i++) { g.fillStyle = d.stripes[(i + 60) % d.stripes.length]; g.fillRect(i * 22 - 11, shY - 10, 22, bodyH + 40); } }
-  if (d.trim) { g.fillStyle = d.trim; g.fillRect(-9, shY, 18, bodyH + 30); g.fillRect(-120, hemY - 22, 240, 30); }
+  // Layered attire (measured placement, in D): upper vestment over the top 45 %, hem band 0.08 D,
+  // centre trim 0.1 D wide, armour panel with dot rows on the torso, collar V 0.25 D deep, apron with pockets.
+  if (d.upper) { g.fillStyle = d.upper; g.fillRect(-200, shY - 10, 400, bodyH * 0.45 + 10); if (d.upperStripe) { g.fillStyle = d.upperStripe; [-0.16, 0.16].forEach(x => g.fillRect(x * D - 5, shY, 10, bodyH * 0.45)); } line(g, -200, shY + bodyH * 0.45, 200, shY + bodyH * 0.45, 4); }
+  if (d.trim) { g.fillStyle = d.trim; g.fillRect(-0.05 * D, shY, 0.1 * D, bodyH + 30); g.fillRect(-200, hemY - 0.08 * D, 400, 0.08 * D + 4); line(g, -200, hemY - 0.08 * D, 200, hemY - 0.08 * D, 3, 'rgba(61,45,36,0.6)'); }
+  if (d.armor) {
+    const ay0 = shY + 0.16 * D, ay1 = shY + bodyH * 0.62;
+    g.fillStyle = d.armor; g.fillRect(-200, ay0, 400, ay1 - ay0);
+    for (let yy = ay0 + 14; yy < ay1 - 6; yy += 22) { line(g, -200, yy + 8, 200, yy + 8, 2.5, 'rgba(30,15,15,0.55)'); for (let xx = -topW + 12; xx < topW; xx += 17) { circle(g, xx, yy, 3.2); fill(g, '#f1e2c4'); } }
+    line(g, -200, ay1, 200, ay1, 4);
+  }
+  if (d.apron) {
+    rrect(g, -0.36 * D, shY + 0.25 * D, 0.72 * D, bodyH * 0.78, [0.08 * D, 0.08 * D, 0.12 * D, 0.12 * D]); fs(g, d.apron, 4);
+    [-1, 1].forEach(sd => { rrect(g, sd * 0.2 * D - 0.11 * D, shY + bodyH * 0.55, 0.22 * D, 0.2 * D, 6); stroke(g, 3.5); });
+    line(g, -0.3 * D, shY + 0.25 * D, -0.36 * D, shY, 4); line(g, 0.3 * D, shY + 0.25 * D, 0.36 * D, shY, 4);
+  }
+  if (d.collar) { poly(g, [[-0.22 * D, shY], [0, shY + 0.25 * D], [0.22 * D, shY]], false); stroke(g, 0.12 * D, OUT); stroke(g, 0.12 * D - 8, d.collar); }
   if (d.sack) {
     g.strokeStyle = 'rgba(60,40,20,0.35)'; g.lineWidth = 2;
     for (let i = -10; i < 10; i++) { line(g, i * 14, shY, i * 14 + 30, hemY + 10, 2, 'rgba(60,40,20,0.3)'); }
@@ -299,8 +319,8 @@ function person(g, o) {
   const items = { r: d.hold, l: d.holdL };
   if (d.pose === 'hands') {
     const hx0 = d.dir * 70, hy0 = -120;
-    line(g, hx0, hy0, hx0 + d.dir * 30, -4, 8); circle(g, hx0 + d.dir * 30, -6, 10); fs(g, HEAD, 4);
-    line(g, hx0 - d.dir * 16, hy0 + 6, hx0 + d.dir * 8, -4, 8); circle(g, hx0 + d.dir * 8, -6, 10); fs(g, HEAD, 4);
+    line(g, hx0, hy0, hx0 + d.dir * 30, -4, 8); circle(g, hx0 + d.dir * 30, -6, 7); fill(g, OUT);
+    line(g, hx0 - d.dir * 16, hy0 + 6, hx0 + d.dir * 8, -4, 8); circle(g, hx0 + d.dir * 8, -6, 7); fill(g, OUT);
   } else {
     drawArm(-1, [d.arms.l[0] + sway, d.arms.l[1] + sway * 0.7], items.l);
     drawArm(1, [d.arms.r[0] - sway, d.arms.r[1] - sway * 0.7], items.r);
@@ -388,6 +408,9 @@ function drawHead(g, hx, hy, R, d) {
     else if (d.eyes === 'wide') { circle(g, ex, ey, 11); fs(g, '#fff', 3.2); circle(g, ex + d.look * 4, ey + 1, 5); fill(g, OUT); }
     else if (d.eyes === 'closed') { g.beginPath(); g.arc(ex, ey - 5, 8.5, 0.2 * PI, 0.8 * PI); stroke(g, 4.5); }
     else if (d.eyes === 'happy') { g.beginPath(); g.arc(ex, ey + 4, 8, 1.15 * PI, 1.85 * PI); stroke(g, 4.5); }
+    else if (d.eyes === 'smug') { ell(g, ex + d.look * 1.5, ey + 1.5, 5, 4.5); fill(g, OUT); line(g, ex - 9, ey - 3, ex + 9, ey - 3, 4); }      // half-lidded: lid line over a dot
+    else if (d.eyes === 'stars') { const st = (cx, cy, r) => { g.beginPath(); for (let k = 0; k < 10; k++) { const a = -PI / 2 + k * PI / 5, rr = k % 2 ? r * 0.45 : r; g.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } g.closePath(); }; circle(g, ex, ey, 9); fill(g, OUT); st(ex, ey, 7.5); fill(g, '#ffd34a'); glow(g, ex, ey, 22, '255,210,90', 0.5); }
+    else if (d.eyes === 'glow') { circle(g, ex, ey, 6); fill(g, '#ff3b2f'); glow(g, ex, ey, 26, '255,60,40', 0.9); }
   };
   eye(ex1); eye(ex2);
   const brow = (ex, side) => {
@@ -398,6 +421,7 @@ function drawHead(g, hx, hy, R, d) {
     if (b === 'flat') { o = [ex - side * 13, by]; i = [ex + side * 12, by]; arch = -1; }
     if (b === 'raised') { o = [ex - side * 13, by - 6]; i = [ex + side * 12, by - 9]; arch = -5; }
     if (b === 'soft') { o = [ex - side * 13, by + 1]; i = [ex + side * 12, by - 1]; arch = -4; }
+    if (b === 'skeptic') { const up = side === dir; o = [ex - side * 13, by + (up ? -8 : 2)]; i = [ex + side * 12, by + (up ? -6 : 4)]; arch = up ? -5 : 0; }
     // tapered: thin at the outer end (3.5), thick at the inner end (0.06 D = 8.4)
     const mx2 = (o[0] + i[0]) / 2, my2 = (o[1] + i[1]) / 2 + arch;
     g.beginPath(); g.moveTo(o[0], o[1] - 1.7); g.quadraticCurveTo(mx2, my2 - 3.5, i[0], i[1] - 4.2);
@@ -413,6 +437,9 @@ function drawHead(g, hx, hy, R, d) {
     case 'o': ell(g, mx, my + 2, 8, 10); fs(g, '#5a2420', 4); break;
     case 'open': g.beginPath(); g.moveTo(mx - 20, my - 6); g.lineTo(mx + 20, my - 6); g.quadraticCurveTo(mx + 20, my + 26, mx, my + 26); g.quadraticCurveTo(mx - 20, my + 26, mx - 20, my - 6); fs(g, '#5a2420', 4); break;
     case 'grit': rrect(g, mx - 26, my - 10, 52, 22, 6); fs(g, '#fff', 4); for (let i = -1; i <= 1; i++) line(g, mx + i * 13, my - 10, mx + i * 13, my + 12, 3); line(g, mx - 26, my + 1, mx + 26, my + 1, 3); break;
+    case 'grin': g.beginPath(); g.moveTo(mx - 26, my - 6); g.quadraticCurveTo(mx, my - 2, mx + 26, my - 6); g.quadraticCurveTo(mx + 20, my + 22, mx, my + 22); g.quadraticCurveTo(mx - 20, my + 22, mx - 26, my - 6); fs(g, '#fff', 4); for (let i = -2; i <= 2; i++) line(g, mx + i * 9, my - 4, mx + i * 9, my + 7, 2.5); line(g, mx - 24, my + 6, mx + 24, my + 6, 2.5); break;
+    case 'smirk': g.beginPath(); g.moveTo(mx - 12, my + 2); g.quadraticCurveTo(mx + 4, my + 6, mx + dir * 15, my - 6); stroke(g, 4.5); break;
+    case 'laugh': g.beginPath(); g.moveTo(mx - 24, my - 6); g.lineTo(mx + 24, my - 6); g.quadraticCurveTo(mx + 22, my + 30, mx, my + 30); g.quadraticCurveTo(mx - 22, my + 30, mx - 24, my - 6); fs(g, '#5a2420', 4); g.save(); g.clip(); ell(g, mx, my + 28, 14, 9); fill(g, '#d9606a'); g.restore(); rrect(g, mx - 20, my - 6, 40, 8, 3); fill(g, '#fff'); break;
     case 'wobbly': g.beginPath(); g.moveTo(mx - 16, my); for (let i = 1; i <= 4; i++) g.lineTo(mx - 16 + i * 8, my + (i % 2 ? -4 : 3)); stroke(g, 4.5); break;
   }
   if (d.sweat) { const sx2 = hx + dir * (R - 2), sy2 = hy - 34; g.beginPath(); g.moveTo(sx2, sy2 - 18); g.quadraticCurveTo(sx2 + 13, sy2 + 4, sx2, sy2 + 8); g.quadraticCurveTo(sx2 - 13, sy2 + 4, sx2, sy2 - 18); fs(g, '#8fd3f4', 4); }
