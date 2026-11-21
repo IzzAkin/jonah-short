@@ -238,3 +238,58 @@ function cam3(camera, t, keys, o = {}) {
 }
 function newCam() { return new T3.PerspectiveCamera(50, W / H, 0.05, 600); }
 function toScreen(v, camera) { const p = new T3.Vector3(...v).project(camera); return [(p.x + 1) / 2 * W, (1 - p.y) / 2 * H]; }
+
+// ------------------------------------------------------------------ procedural town (instanced, outlined)
+// Fills a rectangle with varied mud-brick buildings: flat roofs with parapets, some domes and towers, doors,
+// windows (lit warm when o.lit), rooftop jars and awnings. Instanced so dozens of buildings stay cheap.
+function town(parent, o) {
+  const r = rng(o.seed || 1), n = o.n || 40;
+  const [x0, x1] = o.x, [z0, z1] = o.z;
+  const pal = o.pal || ['#ecd3a5', '#e3c28d', '#d6ad75', '#f0dcb4', '#dcb27c', '#e8c99a'];
+  const faceTo = o.face || 1;                         // which way fronts point along z (+1 toward +z)
+  const items = { box: [], dome: [], door: [], win: [], jar: [], awn: [], tower: [] };
+  const placed = [];
+  for (let k = 0; k < n * 4 && placed.length < n; k++) {
+    const w = (o.w || [2.4, 4.2])[0] + r() * ((o.w || [2.4, 4.2])[1] - (o.w || [2.4, 4.2])[0]);
+    const d = 2.2 + r() * 2.2, h = (o.h || [2.2, 6])[0] + r() * ((o.h || [2.2, 6])[1] - (o.h || [2.2, 6])[0]);
+    const x = x0 + r() * (x1 - x0), z = z0 + r() * (z1 - z0);
+    if (o.avoid && o.avoid(x, z)) continue;
+    if (placed.some(p => Math.abs(p.x - x) < (p.w + w) / 2 + 0.25 && Math.abs(p.z - z) < (p.d + d) / 2 + 0.25)) continue;
+    const c = pal[Math.floor(r() * pal.length)];
+    placed.push({ x, z, w, d, h });
+    items.box.push([x, h / 2, z, w, h, d, c]);
+    items.box.push([x, h + 0.14, z, w + 0.12, 0.28, d + 0.12, c]);                         // parapet cap
+    const fz = z + faceTo * (d / 2 + 0.02);
+    items.door.push([x + (r() - 0.5) * w * 0.4, 0.8, fz, 0.75, 1.6]);
+    const rows = Math.max(1, Math.floor((h - 1.4) / 1.5));
+    for (let ro = 0; ro < rows; ro++) for (let cI = 0; cI < Math.max(1, Math.floor(w / 1.6)); cI++)
+      if (r() < 0.75) items.win.push([x - w / 2 + 0.8 + cI * 1.6 + (r() - 0.5) * 0.2, 2.2 + ro * 1.5, fz + faceTo * 0.01, 0.45, 0.55]);
+    if (r() < 0.22) items.dome.push([x, h + 0.28, z, Math.min(w, d) * 0.38, o.domeCol || (r() < 0.5 ? '#f3ead8' : '#5f9fc0')]);
+    else if (r() < 0.3) items.tower.push([x + (r() - 0.5) * w * 0.4, h + 1.0, z + (r() - 0.5) * d * 0.4, 1.0, 2.0, 1.0, c]);
+    if (r() < 0.35) for (let j = 0; j < 1 + Math.floor(r() * 3); j++) items.jar.push([x + (r() - 0.5) * w * 0.7, h + 0.55, z + (r() - 0.5) * d * 0.7]);
+    if (r() < 0.25) items.awn.push([x, 2.1, fz + faceTo * 0.45, Math.min(w * 0.7, 2.4), ['#c94b3a', '#3f8a9a', '#e1a23c', '#7a5aa8'][Math.floor(r() * 4)]]);
+  }
+  const dm = new T3.Object3D(), tex = texSpeckle('#ffffff', [1, 1], 900, 0.14, o.seed || 3);
+  const inst = (geo, list, setFn, matOpts = {}, outlineW = 0.04, shadow = true) => {
+    if (!list.length) return null;
+    const m = new T3.InstancedMesh(geo, new T3.MeshLambertMaterial({ map: matOpts.map, ...(matOpts.basic ? {} : {}) }), list.length);
+    if (matOpts.basic) m.material = new T3.MeshBasicMaterial({ color: col(matOpts.basic), fog: true });
+    const ol = outlineW ? new T3.InstancedMesh(geo, OUTLINE_MAT, list.length) : null;
+    list.forEach((it, i) => {
+      const [sx, sy, sz, c] = setFn(it, dm); dm.updateMatrix(); m.setMatrixAt(i, dm.matrix);
+      if (c) m.setColorAt(i, col(c));
+      if (ol) { dm.scale.set(sx + 2 * outlineW, sy + 2 * outlineW, sz + 2 * outlineW); dm.updateMatrix(); ol.setMatrixAt(i, dm.matrix); }
+    });
+    m.castShadow = shadow; m.receiveShadow = true; parent.add(m); if (ol) parent.add(ol); return m;
+  };
+  const B = new T3.BoxGeometry(1, 1, 1), S = new T3.SphereGeometry(1, 16, 10, 0, TAU, 0, PI / 2), P = new T3.PlaneGeometry(1, 1);
+  if (faceTo < 0) P.rotateY(PI);
+  inst(B, items.box, (b, d) => { d.position.set(b[0], b[1], b[2]); d.rotation.set(0, 0, 0); d.scale.set(b[3], b[4], b[5]); return [b[3], b[4], b[5], b[6]]; }, { map: tex }, 0.05);
+  inst(B, items.tower, (b, d) => { d.position.set(b[0], b[1], b[2]); d.rotation.set(0, 0, 0); d.scale.set(b[3], b[4], b[5]); return [b[3], b[4], b[5], b[6]]; }, { map: tex }, 0.05);
+  inst(S, items.dome, (b, d) => { d.position.set(b[0], b[1], b[2]); d.rotation.set(0, 0, 0); d.scale.set(b[3], b[3] * 0.9, b[3]); return [b[3], b[3] * 0.9, b[3], b[4]]; }, {}, 0.05);
+  inst(P, items.door, (b, d) => { d.position.set(b[0], b[1], b[2]); d.rotation.set(0, 0, 0); d.scale.set(b[3], b[4], 1); return [b[3], b[4], 1]; }, { basic: '#4a2f1e' }, 0, false);
+  inst(P, items.win, (b, d) => { d.position.set(b[0], b[1], b[2]); d.rotation.set(0, 0, 0); d.scale.set(b[3], b[4], 1); return [b[3], b[4], 1]; }, { basic: o.lit ? '#ffcf6a' : '#4a2f1e' }, 0, false);
+  inst(new T3.CylinderGeometry(0.16, 0.12, 0.5, 10), items.jar, (b, d) => { d.position.set(b[0], b[1], b[2]); d.rotation.set(0, 0, 0); d.scale.set(1, 1, 1); return [0.32, 0.5, 0.32, '#b8673a']; }, {}, 0.025);
+  inst(B, items.awn, (b, d) => { d.position.set(b[0], b[1], b[2]); d.rotation.set(faceTo * 0.35, 0, 0); d.scale.set(b[3], 0.06, 0.95); return [b[3], 0.06, 0.95, b[4]]; }, {}, 0.025);
+  return placed;
+}

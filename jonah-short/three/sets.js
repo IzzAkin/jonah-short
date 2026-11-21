@@ -100,6 +100,10 @@ function makeHarbor() {
   const r = rng(31);
   for (let i = 0; i < 16; i++) house(sc, -46 + i * 2.9 + r() * 0.6, -15 - r() * 16, 2.4 + r() * 1.6, 2.4 + r() * 3.6, 3, ['#ebc995', '#dcae78', '#f0d4a6', '#e3b984'][i % 4], 40 + i);
   [[-70, -140, 30], [-20, -150, 26], [30, -170, 34]].forEach(([x, z, s]) => sph(sc, s, '#d99a62', [x, -s * 0.72, z], { s: [1.6, 1, 1] }));
+  town(sc, { seed: 101, n: 45, x: [-62, 8], z: [-36, -62], h: [2.6, 7.5] });
+  const hillTown = new T3.Group(); hillTown.position.y = 2.5; sc.add(hillTown);
+  town(hillTown, { seed: 102, n: 40, x: [-70, 20], z: [-70, -105], h: [3, 9] });
+  palm(sc, [-30, 0, -34], 6.5, 0.1); palm(sc, [-3, 0, -38], 5.8, -0.12); palm(sc, [-45, 0, -40], 6, 0.15);
   palm(sc, [-12, 0, -6], 5.5, 0.12); palm(sc, [-21, 0, -9], 6, -0.1); palm(sc, [6, 0, -9], 5, 0.18);
   // signposts
   cyl(sc, 0.08, 0.1, 3.4, '#7a4f2c', [-8, 1.7, -1]);
@@ -319,6 +323,10 @@ function makeGate() {
   ground(sc, 140, 120, '#ecd2a4', { m: mat('#ecd2a4', { map: texTiles('#ecd2a4', 'rgba(140,100,50,0.3)', [40, 34]) }), z: -20 });
   box(sc, 70, 8, 3, '#dcb67e', [0, 4, -14], { map: texBricks('#dcb67e', 'rgba(120,80,40,0.35)', [14, 2]), ol: 0.05 });
   for (let x = -34; x <= 34; x += 2) box(sc, 1.0, 1.0, 3, '#dcb67e', [x, 8.5, -14], { map: texBricks('#dcb67e', 'rgba(120,80,40,0.35)', [0.2, 0.2]), ol: 0.03 });
+  const gateCity = new T3.Group(); gateCity.position.y = 3; sc.add(gateCity);   // city sits on a rise behind the wall
+  town(gateCity, { seed: 201, n: 60, x: [-45, 45], z: [-18, -62], h: [8, 14], w: [3, 5.5], avoid: (x, z) => Math.abs(x) < 3 && z > -22 });
+  [[-18, -30], [16, -26], [-6, -48], [30, -44], [-34, -40]].forEach(([x, z], i) => { const th = 20 + (i % 3) * 3; box(sc, 2.6, th, 2.6, '#d6ad75', [x, th / 2, z], { map: texBricks('#d6ad75', 'rgba(120,80,40,0.35)', [0.6, 5]), ol: 0.05 }); sph(sc, 1.7, i % 2 ? '#5f9fc0' : '#f3ead8', [x, th, z], { ol: 0.04 }); });
+  flag3(sc, [-6, 25, -48], '#c94b3a', 1.6, 0.9, 2.5);
   arch(sc, 5.4, 7.4, 0.5, '#2f5ea8', [0, 0, -12.4], { map: texBricks('#2f5ea8', 'rgba(20,30,70,0.5)', [1.5, 2]) });
   arch(sc, 3.8, 6.3, 0.52, '#2b2018', [0, 0, -12.35], { basic: true });
   for (let i = 0; i < 6; i++) [-2.3, 2.3].forEach(x => sph(sc, 0.14, '#f2c94c', [x, 1.0 + i * 0.95, -12.1], { emissive: '#a07a10', ei: 0.3, ol: 0.012 }));
@@ -359,6 +367,8 @@ function makeSquare() {
   ground(sc, 140, 120, '#d7bc8c', { m: mat('#d7bc8c', { map: texTiles('#d7bc8c', 'rgba(120,90,50,0.3)', [40, 34]) }), z: -20 });
   const r = rng(33);
   for (let i = 0; i < 18; i++) house(sc, -26 + i * 3.1 + r(), -13 - r() * 8, 2.6 + r() * 1.2, 2.8 + r() * 3.4, 3, ['#e3c28d', '#d6ad75', '#ecd3a5'][i % 3], 80 + i);
+  town(sc, { seed: 301, n: 60, x: [-40, 38], z: [-23, -58], h: [3, 9], avoid: (x, z) => Math.abs(x - 7) < 10 && Math.abs(z + 30) < 10 });
+  [[-12, -40], [24, -44], [-28, -30]].forEach(([x, z], i) => { box(sc, 2.2, 13 + i * 2, 2.2, '#d6ad75', [x, (13 + i * 2) / 2, z], { map: texBricks('#d6ad75', 'rgba(120,80,40,0.35)', [0.6, 4]), ol: 0.05 }); sph(sc, 1.4, '#5f9fc0', [x, 13 + i * 2, z], { ol: 0.04 }); });
   [[16, '#cfa86e'], [12, '#d9b47c'], [8, '#e2c08c'], [4.5, '#ebcd9c']].forEach(([w, c], i) => box(sc, w, 2.4, w, c, [7, 1.2 + i * 2.4, -30], { map: texBricks(c, 'rgba(120,80,40,0.3)', [w / 3, 0.6]), ol: 0.05 }));
   cyl(sc, 0.3, 1.3, 0.5, '#aaa6a0', [6, 0.25, -2], { map: texSpeckle('#aaa6a0', [3, 1], 2500, 0.25, 9), ol: 0.025, seg: 28 });
   const crown = new T3.Group(); cyl(crown, 0.25, 0.22, 0.55, '#b5302d', [0, 0, 0]); [-0.22, 0.24].forEach(y => cyl(crown, 0.27, 0.27, 0.08, '#e8b63c', [0, y, 0], { ol: 0.01 }));
@@ -407,6 +417,8 @@ function makeHill() {
   const r = rng(14);
   for (let i = 0; i < 160; i++) { const x = (r() - 0.5) * 30, z = (r() - 0.5) * 30 - 2; const c = cyl(sc, 0, 0.06, 0.3, '#a4864e', [x, hf(x, z) + 0.12, z], { ol: false, seg: 5 }); c.rotation.z = (r() - 0.5) * 0.6; }
   const city = new T3.Group(); city.position.set(-34, -1.4, -80); sc.add(city);
+  town(city, { seed: 401, n: 50, x: [-22, 26], z: [-4, -26], h: [3, 8] });
+  [[-8, -12], [10, -18]].forEach(([x, z]) => { box(city, 2, 12, 2, '#d6ad75', [x, 6, z], { ol: 0.06 }); sph(city, 1.3, '#5f9fc0', [x, 12, z], { ol: 0.05 }); });
   box(city, 30, 3, 1, '#dcb67e', [0, 1.5, 0], { ol: 0.06 });
   for (let i = 0; i < 12; i++) box(city, 2 + r() * 2, 2 + r() * 4, 2, '#d6b47e', [-13 + i * 2.4, 1.5, -3], { ol: 0.05 });
   [[8, '#cfa86e'], [5, '#e2c08c']].forEach(([w, c], i) => box(city, w, 2, w, c, [4, 1 + i * 2 + 1, -8], { ol: 0.05 }));

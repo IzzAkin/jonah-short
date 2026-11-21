@@ -387,7 +387,16 @@ function drawHead(g, hx, hy, R, d) {
   };
   if (d.head === 'wrap') { if (d.back) { circle(g, hx, hy, R + 3); fs(g, d.headCol); g.beginPath(); g.arc(hx, hy + 60, R + 10, 1.2 * PI, 1.8 * PI); stroke(g, 3, 'rgba(120,90,50,0.5)'); } else { cap(d.headCol, 0.2); line(g, hx - R + 12, hy - 50, hx + R - 12, hy - 50, 3, 'rgba(120,90,50,0.5)'); } tails(d.headCol, 70); }
   if (d.head === 'scarf') { cap('#c8423a', 0.02); tails('#c8423a', 100); }
-  if (d.head === 'cap') { cap('#3d68b5', 0.22); line(g, hx + dir * 10, hy - 22, hx + dir * 80, hy - 18, 8); line(g, hx + dir * 10, hy - 22, hx + dir * 80, hy - 18, 4, '#3d68b5'); }
+  if (d.head === 'cap') {
+    // dome over the top of the head; the peak hangs off the cap's lower edge on the facing side, above the brows
+    const ey0 = hy - (R + 4) * Math.sin(0.2 * PI) + 2;
+    g.beginPath(); g.moveTo(hx - dir * 6, ey0 - 2);
+    g.quadraticCurveTo(hx + dir * (R * 0.7), ey0 - 6, hx + dir * (R + 30), ey0 + 4);
+    g.quadraticCurveTo(hx + dir * (R * 0.75), ey0 + 14, hx - dir * 6, ey0 + 8); g.closePath(); fs(g, '#2f5694', 4.5);
+    cap('#3d68b5', 0.2);
+    circle(g, hx, hy - R - 2, 7); fs(g, '#2f5694', 3.5);                       // button on top
+    line(g, hx, hy - R + 4, hx + dir * 0, ey0, 2.5, 'rgba(30,40,80,0.5)');      // seam
+  }
   if (d.head === 'headband') {
     g.save(); circle(g, hx, hy, R); g.clip(); g.fillStyle = '#3f9a5a'; g.fillRect(hx - R, hy - 44, 2 * R, 22); g.restore();
     line(g, hx - R + 4, hy - 44, hx + R - 4, hy - 44, 4); line(g, hx - R + 2, hy - 22, hx + R - 2, hy - 22, 4); tails('#3f9a5a', 60);
