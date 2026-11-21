@@ -1,7 +1,7 @@
 // The 11 shots as 3D sets with 2D character cards. Each set is built once; frame(t) poses it and returns
 // { scene, camera, post } where post(g) draws 2D overlays (rain, flashes) on the composited frame.
-const CREW = (parent, n) => new Card(parent, { w: 640, h: 960, ax: 320, ay: 900, pxm: 294, base: 1.03, blob: 0.85 });   // measured rig: 472 units tall -> 1.65 m
-const LEAD = parent => new Card(parent, { base: 1.64, blob: 0.95 });
+const CREW = (parent, n) => new Card(parent, { w: 640, h: 960, ax: 320, ay: 900, pxm: 294, base: 0.96, blob: 0.85 });   // rig v3: 507 units tall -> 1.65 m
+const LEAD = parent => new Card(parent, { base: 1.53, blob: 0.95 });
 
 function flag3(parent, p, c, len = 1.4, hgt = 0.8, pole = 3.2) {
   const g = new T3.Group();
@@ -196,7 +196,7 @@ function makeShip() {
       cam3(bcam, tb, [[0.3, { p: [0, 2.0, 4.3], l: [0, 1.85, -0.2] }], [2.0, { p: [0, 1.95, 3.6], l: [0, 1.85, -0.2] }]]);
       const sw = Math.sin(NOW * 1.6) * 0.04; ham.position.x = sw;
       lantern.position.x = 1.0 + Math.sin(NOW * 1.6) * 0.06;
-      Jl.draw(g => person(g, { ...JONAH, x: 1150, y: 640, s: 1.64, rot: -PI / 2, dir: 1, eyes: 'closed', mouth: 'o', arms: { l: [10, 0], r: [10, 0] }, idle: false })).at(sw - 0.05, 2.05, -0.2, bcam);
+      Jl.draw(g => person(g, { ...JONAH, x: 1150, y: 640, s: 1.53, rot: -PI / 2, dir: 1, eyes: 'closed', mouth: 'o', arms: { l: [10, 0], r: [10, 0] }, idle: false })).at(sw - 0.05, 2.05, -0.2, bcam);
       const head = toScreen([-0.85 + sw, 2.4, -0.2], bcam);
       return { scene: bd, camera: bcam, post: g => {
         for (let i = 0; i < 3; i++) { const p = mod(NOW * 0.7 + i / 3, 1); g.save(); g.globalAlpha = Math.sin(p * PI); g.font = `900 ${50 + p * 50}px Montserrat`; g.textAlign = 'center'; g.lineWidth = 9; g.strokeStyle = INK; g.strokeText('Z', head[0] + 40 + p * 90, head[1] - 60 - p * 280); g.fillStyle = '#fff4dc'; g.fillText('Z', head[0] + 40 + p * 90, head[1] - 60 - p * 280); g.restore(); }
@@ -410,7 +410,7 @@ function makeHill() {
   box(city, 30, 3, 1, '#dcb67e', [0, 1.5, 0], { ol: 0.06 });
   for (let i = 0; i < 12; i++) box(city, 2 + r() * 2, 2 + r() * 4, 2, '#d6b47e', [-13 + i * 2.4, 1.5, -3], { ol: 0.05 });
   [[8, '#cfa86e'], [5, '#e2c08c']].forEach(([w, c], i) => box(city, w, 2, w, c, [4, 1 + i * 2 + 1, -8], { ol: 0.05 }));
-  const J = new Card(sc, { base: 1.64, blob: 0.95, h: 1800, ay: 1700 }), cam = newCam();
+  const J = new Card(sc, { base: 1.53, blob: 0.95, h: 1800, ay: 1700 }), cam = newCam();
   const y0 = hf(0, 0);
   return function (t) {
     const tFur = wt(10, 'furious.'), tHed = wt(10, 'He’d'), stomp = tFur + 0.12;
