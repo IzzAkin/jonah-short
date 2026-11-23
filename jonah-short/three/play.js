@@ -265,14 +265,16 @@ window.PLAY = (() => {
     if (opts.size) { R3.setSize(opts.size[0], opts.size[1], false); camera.aspect = opts.size[0] / opts.size[1]; camera.updateProjectionMatrix(); }
     return { R, A };
   }
-  function physicsStep() { const inp = inputNow(); stepRunner(R, inp); stepAnim(A, R, inp); t += PH.dt; }
+  function physicsStep() {
+    const inp = inputNow(); stepRunner(R, inp); stepAnim(A, R, inp); t += PH.dt;
+    // camera: critically damped follow, stepped with the physics so it never lags on slow devices
+    const tx = R.x + clamp(R.vx * 0.22, -2.2, 2.2), ty = R.y + 1.45, w = 5, dt = PH.dt;
+    camS.vx += (w * w * (tx - camS.x) - 2 * w * camS.vx) * dt; camS.x += camS.vx * dt;
+    camS.vy += (w * w * (ty - camS.y) - 2 * w * camS.vy) * dt; camS.y += camS.vy * dt;
+  }
   function render(alpha = 1) {
     NOW = 0.3 + t;
     const x = lerp(R.prev.x, R.x, alpha), y = lerp(R.prev.y, R.y, alpha);
-    // camera: critically damped follow, leading in the direction of travel
-    const tx = x + clamp(R.vx * 0.22, -2.2, 2.2), ty = y + 1.45, w = 5, dt = PH.dt;
-    camS.vx += (w * w * (tx - camS.x) - 2 * w * camS.vx) * dt; camS.x += camS.vx * dt;
-    camS.vy += (w * w * (ty - camS.y) - 2 * w * camS.vy) * dt; camS.y += camS.vy * dt;
     camera.position.set(camS.x, camS.y + 0.15, PH.lane + 5.0); camera.lookAt(camS.x, camS.y - 0.25, PH.lane); camera.updateMatrixWorld();
     // match the scene light: key-light direction projected into screen space, tint from sun + sky colour
     const sd = sun.position.clone().sub(sun.target.position).normalize();
@@ -301,5 +303,5 @@ window.PLAY = (() => {
   }
   // deterministic stepping for recording: n physics steps then one render
   function advance(n) { for (let i = 0; i < n; i++) physicsStep(); render(1); }
-  return { init, start, advance, get R() { return R; }, get A() { return A; }, setKeys: k => (keys = k) };
+  return { init, start, advance, get R() { return R; }, get A() { return A; }, get _keys() { return keys; }, setKeys: k => { Object.assign(keys, k); } };
 })();

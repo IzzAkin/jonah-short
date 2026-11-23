@@ -1,0 +1,73 @@
+<title>Harbour Run</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&display=swap">
+<style>
+/* One committed look: dusk over Joppa harbour. Full-bleed 3D canvas, ink-on-paper controls. */
+:root {
+  --dusk: #f3c08c;        /* harbour haze, behind the canvas while it loads */
+  --paper: #f6efe2;       /* control chips */
+  --ink: #231d1b;         /* the character's ink */
+  --wrap: #d9c08f;        /* head-wrap sand, pressed state */
+  --shade: rgba(35,29,27,.18);
+  --ui: "Montserrat", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body { background: var(--dusk); color: var(--ink); overflow: hidden; font-family: var(--ui); touch-action: none; user-select: none; -webkit-user-select: none; }
+canvas { display: block; filter: saturate(1.15) contrast(1.03) brightness(1.08); }
+.hud { z-index: 2; position: fixed; left: calc(12px + env(safe-area-inset-left, 0px)); top: calc(12px + env(safe-area-inset-top, 0px)); display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 24px); pointer-events: none; }
+.key { background: var(--paper); border: 2.5px solid var(--ink); border-radius: 9px; padding: 4px 9px; font: 800 12px/1.2 var(--ui); letter-spacing: .02em; box-shadow: 0 2px 0 var(--shade); }
+.key b { font-weight: 900; }
+.speed { z-index: 2; position: fixed; right: calc(12px + env(safe-area-inset-right, 0px)); top: calc(12px + env(safe-area-inset-top, 0px)); background: var(--paper); border: 2.5px solid var(--ink); border-radius: 9px; padding: 4px 10px; font: 900 13px var(--ui); font-variant-numeric: tabular-nums; min-width: 9ch; text-align: right; }
+.speed small { font-weight: 800; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; margin-right: 6px; }
+.pad { z-index: 2; position: fixed; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); display: none; gap: 10px; }
+.pad.left { left: calc(14px + env(safe-area-inset-left, 0px)); }
+.pad.right { right: calc(14px + env(safe-area-inset-right, 0px)); }
+.pad button { width: 64px; height: 64px; border-radius: 50%; background: var(--paper); border: 3px solid var(--ink); font: 900 20px var(--ui); color: var(--ink); box-shadow: 0 3px 0 var(--shade); touch-action: none; }
+.pad button.on { background: var(--wrap); transform: translateY(2px); box-shadow: none; }
+.pad button:focus-visible, .key:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+@media (pointer: coarse) { .pad { display: flex; } .hud { display: none; } }
+.loading[hidden] { display: none; }
+.loading { z-index: 3; position: fixed; inset: 0; display: grid; place-items: center; font: 900 18px var(--ui); letter-spacing: .04em; }
+</style>
+
+<div class="loading" id="loading">Building the harbour…</div>
+<div class="hud" aria-label="Controls">
+  <span class="key"><b>← →</b> run</span>
+  <span class="key"><b>Z</b> / <b>Space</b> / <b>↑</b> jump, hold for height</span>
+  <span class="key"><b>↓</b> at speed: slide</span>
+  <span class="key">hold <b>↓</b> while landing: roll</span>
+</div>
+<div class="speed" aria-live="off"><small>speed</small><span id="spd">0.0</span> m/s</div>
+<div class="pad left"><button id="bL" aria-label="Run left">◀</button><button id="bR" aria-label="Run right">▶</button></div>
+<div class="pad right"><button id="bD" aria-label="Slide or roll">▼</button><button id="bJ" aria-label="Jump">▲</button></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="js/timing.js"></script>
+<script src="js/draw.js"></script>
+<script src="js/scenes.js"></script>
+<script src="js/sketch.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/sets.js"></script>
+<script src="js/play.js"></script>
+<script>
+(function () {
+  const keys = {};
+  const touch = { bL: 'ArrowLeft', bR: 'ArrowRight', bD: 'ArrowDown', bJ: 'Space' };
+  function boot() {
+    PLAY.init(); PLAY.start();
+    document.getElementById('loading').hidden = true;
+    // on-screen pad feeds the same key map the controller reads
+    Object.entries(touch).forEach(([id, code]) => {
+      const b = document.getElementById(id);
+      const on = e => { e.preventDefault(); keys[code] = true; b.classList.add('on'); PLAY.setKeys(Object.assign(PLAY._keys || {}, keys)); };
+      const off = e => { e.preventDefault(); keys[code] = false; b.classList.remove('on'); PLAY.setKeys(Object.assign(PLAY._keys || {}, keys)); };
+      b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('pointerleave', off);
+    });
+    const spd = document.getElementById('spd');
+    setInterval(() => { const R = PLAY.R; if (R) spd.textContent = Math.abs(R.ground ? R.s : R.vx).toFixed(1); }, 100);
+  }
+  const go = () => { try { boot(); } catch (e) { document.getElementById('loading').textContent = 'The 3D view could not start: ' + e.message; } };
+  (document.fonts ? document.fonts.load('900 40px Montserrat').catch(() => {}) : Promise.resolve()).then(go);
+})();
+</script>

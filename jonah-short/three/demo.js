@@ -10,10 +10,10 @@ function makeDemo() {
     else if (phase === 2) { o.left = true; if (t - t0 > 0.75) { phase = 3; t0 = t; } }                 // skid, turn, run back
     else if (phase === 3) { if (t - t0 > 0.6) { phase = 4; t0 = t; } }                                // coast to a stop
     else if (phase === 4) { o.right = true; if (R.x > 9.5) o.down = true; if (R.x > 12.8) { phase = 5; } } // sprint then slide
-    else if (phase === 5) { o.right = true; if (R.x > 20.5 && R.y > 1.5) { press('deck'); phase = 6; t0 = t; } } // up the gangplank, jump on deck
-    else if (phase === 6) { o.right = true; o.jumpHeld = t - t0 < 0.25; if (!R.ground && R.vy < -2) o.down = true; if (R.ground && t - t0 > 0.3) { o.down = true; phase = 7; t0 = t; } }
-    else if (phase === 7) { o.down = R.rollT > 0; if (t - t0 > 0.5) { phase = 8; t0 = t; } }
-    else if (phase === 8) { o.left = t - t0 < 0.15; }
+    else if (phase === 5) { o.right = true; if (R.x > 19.4 && R.y > 1.5) { press('deck'); phase = 6; t0 = t; } } // up the gangplank slope, jump onto the deck
+    else if (phase === 6) { o.right = t - t0 < 0.12; o.left = t - t0 > 0.35; o.jumpHeld = t - t0 < 0.3; if (!R.ground && R.vy < -1) o.down = true; if (R.ground && t - t0 > 0.3) { o.down = true; phase = 7; t0 = t; } }
+    else if (phase === 7) { o.down = R.rollT > 0; if (R.rollT <= 0) { phase = 8; t0 = t; } }      // roll out of the landing
+    else if (phase === 8) { o.left = t - t0 < 0.35; }                                          // brake, settle, idle
     return o;
   };
 }
