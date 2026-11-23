@@ -224,8 +224,8 @@ function drawRunner(g, card, R, A, sc, light, opts = {}) {
   g.rotate(ang); g.scale(1 + k, 1 - k * 0.6); g.rotate(-ang);
   const q = clamp(A.q, -0.32, 0.3);
   g.scale((1 - q * 0.65) * face, 1 + q);
-  const J = sketchman(g, { x: 0, y: 0, s: sc * (opts.k || 1), dir: f, pose: A.pose, look: opts.look || LOOKS.jonah, id: opts.id || 'J', back: opts.back, seaweed: opts.seaweed, shake: opts.shake || 0, vel: [R.vx / PH.H, R.vy / PH.H], hemOff: [A.hem[0], A.hem[1]],
-    tailChain: A.chain.map(n => [n.x, n.y]), face: { eyes: R.ground && A.w.skid > 0.5 ? 'wide' : 'dot', brows: A.w.skid > 0.5 ? 'worried' : 'soft', mouth: A.w.air > 0.5 ? 'o' : A.w.skid > 0.5 ? 'wobbly' : 'line', ...(opts.face || {}) } });
+  const J = sketchman(g, { x: 0, y: 0, s: sc * (opts.k || 1), dir: f, pose: A.pose || POSES.idle, look: opts.look || LOOKS.jonah, id: opts.id || 'J', back: opts.back, seaweed: opts.seaweed, shake: opts.shake || 0, vel: [R.vx / PH.H, R.vy / PH.H], hemOff: [A.hem[0], A.hem[1]],
+    tailChain: A.chain ? A.chain.map(n => [n.x, n.y]) : undefined, face: { eyes: R.ground && A.w.skid > 0.5 ? 'wide' : 'dot', brows: A.w.skid > 0.5 ? 'worried' : 'soft', mouth: A.w.air > 0.5 ? 'o' : A.w.skid > 0.5 ? 'wobbly' : 'line', ...(opts.face || {}) } });
   g.restore();
   // smear frames: tapered ink arcs from recent tip positions when a limb or the body moves fast
   const HIST = A.hist;
