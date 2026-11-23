@@ -116,7 +116,7 @@ function makeHarbor() {
   [[3.5, -2.2], [4.3, -2.6], [3.9, -1.5]].forEach(([x, z], i) => box(sc, 0.8, 0.8, 0.8, '#b07a48', [x, 0.4 + (i === 2 ? 0.8 : 0), z], { map: texPlanks('#b07a48', 'rgba(40,20,10,0.6)', [1, 1]) }));
   const coins = [0, 1, 2].map(() => cyl(sc, 0.07, 0.07, 0.02, '#f2c13c', [0, 0, 0], { emissive: '#b8860b', ei: 0.4, ol: 0.008 }));
   const J = LEAD(sc), S = CREW(sc), cam = newCam();
-  return function (t) {
+  const fn = function (t) {
     const tJ = wt(2, 'Jonah', 2), tTicket = wt(2, 'ticket'), tOpp = wt(2, 'opposite'), tc = tJ - 0.1;
     sea.userData.update(NOW); shipFlag.userData.update(NOW);
     cam3(cam, t, [[0, { p: [-8.3, 1.8, 6.8], l: [-8.2, 2.3, -1] }], [0.6, { p: [-8.3, 1.8, 6.8], l: [-8.2, 2.3, -1] }], [tc, { p: [-6, 1.75, 6.8], l: [-5.6, 1.9, -1] }],
@@ -137,6 +137,7 @@ function makeHarbor() {
     });
     return { scene: sc, camera: cam };
   };
+  fn.scene = sc; fn.J = J; fn.S = S; fn.coins = coins; return fn;
 }
 
 // ================================================================== the ship in the storm (shots 3, 4) and below deck

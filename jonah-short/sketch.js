@@ -105,6 +105,7 @@ function sketchman(g, o) {
   const kneeMid = [(kF[0] + kB[0]) / 2, Math.min(kF[1], kB[1]) - 0.02 * H];
   const right = kF[0] >= kB[0] ? kF : kB, left = right === kF ? kB : kF;
   const tun = [[waist[0] + wl, waist[1]], outward(right, left), kneeMid, outward(left, right), [waist[0] - wl, waist[1]]];
+  if (d.hemOff) [1, 2, 3].forEach(i => { const k = i === 2 ? 0.55 : 1; tun[i] = [tun[i][0] + d.hemOff[0] * k * dir, tun[i][1] + d.hemOff[1] * k]; });
   const tunicPath = () => { g.beginPath(); tun.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); };
   // front leg drawn first under the tunic hem so the shin pokes out below
   back([lF[0], lF[1]], 3); foot(lF, 23);
@@ -124,7 +125,19 @@ function sketchman(g, o) {
   if (d.tailA !== undefined) { tx = Math.cos(d.tailA); ty = Math.sin(d.tailA); }
   else { const tg = tailTarget(vx, vy, dir); tx = Math.cos(tg); ty = Math.sin(tg); }
   const wave = Math.sin(NOW * 9) * (0.06 + Math.min(1, sp / 5) * 0.18);
-  [[1, 0.95], [0.75, 0.75]].forEach(([len, k], i) => {
+  if (d.tailChain) {
+    [[0, 1], [10, 0.8]].forEach(([off, sc], ti) => {
+      const pts = d.tailChain.map(([cx, cy], j) => [anchor[0] + cx * dir * sc + (j ? off * 0.3 : 0), anchor[1] + cy * sc + (j ? off * 0.15 : 0)]);
+      const L = [], Rr = [];
+      pts.forEach((p, j) => { const q = pts[Math.min(j + 1, pts.length - 1)], r = pts[Math.max(j - 1, 0)], tx = q[0] - r[0], ty = q[1] - r[1], n = Math.hypot(tx, ty) || 1, w = (9 - j * 2.2) * (ti ? 0.8 : 1);
+        L.push([p[0] - ty / n * w, p[1] + tx / n * w]); Rr.push([p[0] + ty / n * w, p[1] - tx / n * w]); });
+      g.beginPath(); g.moveTo(L[0][0], L[0][1]);
+      for (let j = 1; j < L.length; j++) g.quadraticCurveTo(L[j - 1][0], L[j - 1][1], (L[j - 1][0] + L[j][0]) / 2, (L[j - 1][1] + L[j][1]) / 2);
+      g.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]);
+      for (let j = Rr.length - 1; j > 0; j--) g.quadraticCurveTo(Rr[j][0], Rr[j][1], (Rr[j - 1][0] + Rr[j][0]) / 2, (Rr[j - 1][1] + Rr[j][1]) / 2);
+      g.closePath(); g.fillStyle = SK.wrap; g.fill(); g.lineWidth = 5; g.strokeStyle = SK.ink; g.lineJoin = 'round'; g.stroke();
+    });
+  } else [[1, 0.95], [0.75, 0.75]].forEach(([len, k], i) => {
     const L = (0.12 + 0.05 * Math.min(1, sp / 4)) * H * len;
     const a = Math.atan2(ty, tx) + (i ? 0.35 : -0.15) + wave * (i ? -1 : 1);
     const mid = [anchor[0] + Math.cos(a - wave * 0.6) * L * 0.5, anchor[1] + Math.sin(a - wave * 0.6) * L * 0.5];
@@ -167,7 +180,10 @@ function sketchman(g, o) {
   if (d.seaweed) [[-0.75, -1], [-0.2, -1], [0.45, 1]].forEach(([ox, side], i) => { const x0 = hc[0] + ox * R, y0 = hc[1] - R * 0.95; inkLine(g, [[x0, y0], [x0 + side * R * 0.35, y0 - R * 0.12], [x0 + side * R * 0.55, y0 + R * 0.35 + i * 6]], 5, 100 + i, '#4a9a3c'); });
   // front arm last; hands are just the line ends
   back([shoulder, aF[0], aF[1]], 5);
+  const M = g.getTransform(), mp = p => { const q = M.transformPoint(new DOMPoint(p[0], p[1])); return [q.x, q.y]; };
+  const J = { handF: mp(aF[1]), handB: mp(aB[1]), elbowF: mp(aF[0]), elbowB: mp(aB[0]), footF: mp(lF[1]), footB: mp(lB[1]), kneeF: mp(lF[0]), kneeB: mp(lB[0]), shoulder: mp(shoulder), hip: mp([0, 0]), head: mp(hc), headR: R * Math.hypot(M.a, M.b) };
   g.restore();
+  return J;
 
   function foot(l, seed) { const [k, f] = l; inkLine(g, [[f[0] - dir * 3, f[1]], [f[0] + dir * 15, f[1] + 1]], SK.line, seed); }
 }

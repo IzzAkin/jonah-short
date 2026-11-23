@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Jonah: Harbour Run</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+@font-face{font-family:'Montserrat';font-weight:900;src:url(../montserrat-latin-900-normal.woff2) format('woff2');}
+:root{--ink:#231d1b;--paper:#f6efe2}
+html,body{margin:0;height:100%;overflow:hidden;background:#f3c08c}
+canvas{display:block;filter:saturate(1.15) contrast(1.03) brightness(1.08)}
+#hud{position:fixed;left:16px;bottom:16px;font:800 14px Montserrat,system-ui,sans-serif;color:var(--ink);background:rgba(246,239,226,.85);padding:8px 12px;border-radius:10px}
+</style></head>
+<body>
+<div id="hud">← → run · Z / Space / ↑ jump (hold for height) · ↓ slide, or hold while landing to roll</div>
+<script src="../node_modules/three/build/three.min.js"></script>
+<script src="../timing.js"></script>
+<script src="../draw.js"></script>
+<script src="../scenes.js"></script>
+<script src="../sketch.js"></script>
+<script src="engine.js"></script>
+<script src="sets.js"></script>
+<script src="play.js"></script>
+<script src="demo.js"></script>
+<script>
+const demoMode = location.search.includes('demo');
+document.fonts.load('900 14px Montserrat').finally(() => {
+  if (demoMode) { window.READY = true; return; }
+  PLAY.init(); PLAY.start();
+});
+</script>
+</body></html>
