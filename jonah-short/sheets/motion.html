@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0}canvas{display:block}</style></head><body><canvas id="c" width="2400" height="1200"></canvas>
+<script src="../timing.js"></script><script src="../draw.js"></script><script src="../scenes.js"></script><script src="../sketch.js"></script>
+<script>
+const g=document.getElementById('c').getContext('2d'); g.fillStyle='#ece9ef'; g.fillRect(0,0,2400,1200); NOW=0.4; CHAR_LIGHT=LIGHTS.day;
+const names=['idle','skid','crouch','rise','fall','land','kneel','pray','point','proclaim','pay','fury','stomp','sink','sit'];
+names.forEach((n,i)=>{const x=110+(i%8)*290,y=520+Math.floor(i/8)*560; g.fillStyle='rgba(0,0,0,0.08)'; g.fillRect(x-130,y,260,4);
+  sketchman(g,{x,y,s:1.25,dir:1,pose:n,vel:n==='fall'?[0,-6]:n==='rise'?[2,4]:[0,0],face:n==='fury'?{red:true,eyes:'angry',brows:'angry',mouth:'grit',steam:true}:n==='pray'?{eyes:'closed'}:n==='proclaim'?{mouth:'open',brows:'raised'}:{}});
+  g.font='800 26px sans-serif'; g.fillStyle='#333'; g.textAlign='center'; g.fillText(n,x,y+40);});
+const x=110+7*290, y=1080; for(let k=0;k<1;k++){ sketchman(g,{x,y,s:1.25,dir:1,pose:runPose(1.2),vel:[6,0]}); g.fillText('run',x,y+40);}
+window.READY=Promise.resolve(true);
+</script></body></html>

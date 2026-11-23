@@ -1,0 +1,67 @@
+{
+ "jumps": [
+  {
+   "start": 492,
+   "frames": 26,
+   "air_s": 0.87,
+   "peak_H": 1.32,
+   "gravity_H_s2": 12.8,
+   "v0_H_s": 5.4
+  },
+  {
+   "start": 528,
+   "frames": 28,
+   "air_s": 0.93,
+   "peak_H": 1.48,
+   "gravity_H_s2": 12.8,
+   "v0_H_s": 5.79
+  },
+  {
+   "start": 572,
+   "frames": 27,
+   "air_s": 0.9,
+   "peak_H": 1.48,
+   "gravity_H_s2": 13.6,
+   "v0_H_s": 5.94
+  },
+  {
+   "start": 916,
+   "frames": 81,
+   "air_s": 2.7,
+   "peak_H": 1.41,
+   "gravity_H_s2": -0.4,
+   "v0_H_s": -0.21
+  },
+  {
+   "start": 1003,
+   "frames": 26,
+   "air_s": 0.87,
+   "peak_H": 1.55,
+   "gravity_H_s2": 11.1,
+   "v0_H_s": 6.12
+  }
+ ],
+ "run_cycle_periods_s": [
+  [
+   456,
+   15,
+   0.25
+  ],
+  [
+   917,
+   19,
+   0.633
+  ],
+  [
+   1012,
+   15,
+   0.25
+  ]
+ ],
+ "speed_stats_H_s": {
+  "median_moving": 2.28,
+  "p90": 3.49,
+  "max": 10.33
+ },
+ "accel_p90_H_s2": 29.7
+}
