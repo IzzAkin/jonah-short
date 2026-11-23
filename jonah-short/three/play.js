@@ -34,15 +34,17 @@ function collectSolids(scene, exclude) {
     SOLIDS.push(o);
   });
 }
-function probe(x, yTop, z) {
+function probe(x, yTop, z, solids = SOLIDS, floor = null) {
+  const fl = floor != null && yTop >= floor ? { y: floor, nx: 0, ny: 1 } : null;
+  if (!solids.length) return fl;
   RAY.set(new T3.Vector3(x, yTop, z), RAY_DOWN); RAY.far = 40;
-  const hits = RAY.intersectObjects(SOLIDS, false);
+  const hits = RAY.intersectObjects(solids, false);
   for (const h of hits) {
     const n = h.face ? h.face.normal.clone().transformDirection(h.object.matrixWorld) : new T3.Vector3(0, 1, 0);
     if (n.y < 0) n.negate();
-    if (n.y > 0.45) return { y: h.point.y, nx: n.x, ny: Math.hypot(n.y, n.z) };
+    if (n.y > 0.45) return fl && fl.y > h.point.y ? fl : { y: h.point.y, nx: n.x, ny: Math.hypot(n.y, n.z) };
   }
-  return null;
+  return fl;
 }
 
 // ---------------------------------------------------------------- the controller
@@ -54,7 +56,7 @@ function makeRunner(x0, y0) {
   };
 }
 function stepRunner(R, inp) {
-  const P = PH, dt = P.dt;
+  const P = inp.cap ? { ...PH, vmax: inp.cap, accel: PH.accel * 0.5 } : PH, dt = P.dt;
   R.prev = { x: R.x, y: R.y, faceVis: R.faceVis };
   const vx0 = R.vx, vy0 = R.vy;
   const ix = (inp.right ? 1 : 0) - (inp.left ? 1 : 0);
@@ -79,7 +81,7 @@ function stepRunner(R, inp) {
     s = clamp(s, -P.vmax * 1.7, P.vmax * 1.7);
     if (!ix && !R.slide && Math.abs(s) < 0.05 && Math.abs(gT) < 3) s = 0;
     let nx = R.x + s * tx * dt;
-    const gh = probe(nx, R.y + P.step + 0.6, P.lane);
+    const gh = probe(nx, R.y + P.step + 0.6, R.lane ?? P.lane, R.solids || SOLIDS, R.floor);
     if (gh && gh.y > R.y + P.step) { nx = R.x; s = 0; }               // wall: too high to step
     R.x = nx;
     if (gh && gh.y >= R.y - P.snap - Math.abs(s) * dt * 0.6) {           // stay glued to the ground, follow slopes
@@ -90,7 +92,7 @@ function stepRunner(R, inp) {
     }
     R.s = s;
     if (R.buffer > 0 && (R.ground || R.coyote > 0)) {
-      R.ground = false; R.vy = Math.max(R.vy, 0) + P.jumpV; R.buffer = 0; R.coyote = 0; R.airT = 0; R.takeoffAge = 0; R.slide = false;
+      R.ground = false; R.vy = Math.max(R.vy, 0) + (inp.jumpV || P.jumpV); R.buffer = 0; R.coyote = 0; R.airT = 0; R.takeoffAge = 0; R.slide = false;
     }
   } else {
     R.coyote = Math.max(0, R.coyote - dt); R.airT += dt;
@@ -99,9 +101,9 @@ function stepRunner(R, inp) {
     if (ix) R.vx += ix * P.airAccel * dt * (Math.sign(ix) !== Math.sign(R.vx) ? 1.4 : Math.max(0, 1 - Math.abs(R.vx) / P.vmax));
     R.vx = clamp(R.vx, -P.vmax * 1.7, P.vmax * 1.7);
     let nx = R.x + R.vx * dt, ny = R.y + R.vy * dt;
-    const wall = probe(nx, R.y + P.step + 0.6, P.lane);
+    const wall = probe(nx, R.y + P.step + 0.6, R.lane ?? P.lane, R.solids || SOLIDS, R.floor);
     if (wall && wall.y > R.y + P.step && wall.y > ny + 0.05) { nx = R.x; R.vx = 0; }
-    const gh = probe(nx, Math.max(R.y, ny) + 0.6, P.lane);
+    const gh = probe(nx, Math.max(R.y, ny) + 0.6, R.lane ?? P.lane, R.solids || SOLIDS, R.floor);
     if (gh && R.vy <= 0 && ny <= gh.y) {                                // land, keeping momentum along the slope
       const tx = gh.ny, ty = -gh.nx, s = R.vx * tx + R.vy * ty;
       R.landImpact = -R.vy; R.landAge = 0;
@@ -109,11 +111,12 @@ function stepRunner(R, inp) {
       if (inp.down && Math.abs(s) > 1.5) R.rollT = 0.5;
     } else { R.x = nx; R.y = ny; }
     R.s = R.vx;
-    if (R.y < -3) Object.assign(R, makeRunner(-12, 0.05));            // fell in the sea: respawn on the quay
+    if (R.y < -3 && !R.noRespawn) Object.assign(R, makeRunner(-12, 0.05));            // fell in the sea: respawn on the quay
   }
   // facing: turn only when not braking; the visible turn is a continuous squeeze through edge-on (no flip pop)
   const sp = R.ground ? R.s : R.vx;
   if (ix && !R.skid && (Math.sign(ix) === Math.sign(sp) || Math.abs(sp) < 1.5 || !R.ground)) R.faceT = ix;
+  if (inp.faceTo) R.faceT = inp.faceTo;
   R.faceVis += (R.faceT - R.faceVis) * (1 - Math.exp(-dt * 16));
   R.facing = R.faceVis >= 0 ? 1 : -1;
   R.ax = (R.vx - vx0) / dt; R.ay = (R.vy - vy0) / dt;
@@ -167,6 +170,9 @@ function stepAnim(A, R, inp) {
   const rotT = slopeRot * 0.45 + (A.w.roll > 0.05 ? 0 : 0);
   const kR = 90, cR = 2 * Math.sqrt(kR) * 0.8;
   A.rotV += (kR * (rotT - A.rot) - cR * A.rotV) * dt; A.rot += A.rotV * dt;
+  // scripted tumble while airborne; on the ground it settles to the nearest full turn (no unwinding)
+  if (inp.tumble && !R.ground) A.tumble = (A.tumble || 0) + inp.tumble * dt;
+  else if (A.tumble) A.tumble += (Math.round(A.tumble / TAU) * TAU - A.tumble) * (1 - Math.exp(-dt * 14));
   A.spin = R.rollT > 0 ? (1 - R.rollT / 0.5) * TAU * f : (A.spin || 0) * Math.exp(-dt * 30);
   // 4. arms on springs (Hooke): lag behind acceleration, whip forward when stopping
   const aF = R.ax * f;                                               // acceleration along facing, m/s^2
@@ -191,25 +197,35 @@ function stepAnim(A, R, inp) {
   if (R.takeoffAge < PH.dt * 0.5) A.qv += 2.4;
   const kQ = 260, cQ = 2 * Math.sqrt(kQ) * 0.38;
   A.qv += (-kQ * A.q - cQ * A.qv) * dt; A.q += A.qv * dt;
+  // story acting: a named pose (or pose object) blended in on a spring weight; fades out the same way
+  if (inp.act) A.actPose = typeof inp.act === 'string' ? POSES[inp.act] : inp.act;
+  A.actW = (A.actW || 0) + ((inp.act ? 1 : 0) - (A.actW || 0)) * (1 - Math.exp(-dt * (inp.actRate || 8)));
+  if (A.actPose && A.actW > 0.002) {
+    const ap = alive(A.actPose, A.t, inp.actLife ?? 1); const keep = { aF: P.aF, aB: P.aB };
+    const m = mixPose(P, ap, smooth5(A.actW));
+    // arms keep their spring state but chase the acted pose
+    m.aF = mixPose({ a: keep.aF }, { a: ap.aF }, smooth5(A.actW)).a; m.aB = mixPose({ a: keep.aB }, { a: ap.aB }, smooth5(A.actW)).a;
+    Object.assign(P, m);
+  }
   A.pose = P;
 }
 
 // draw the runner onto its card canvas: squash/stretch transform, the figure, then smears from joint history
-function drawRunner(g, card, R, A, sc, light) {
+function drawRunner(g, card, R, A, sc, light, opts = {}) {
   const W = card.w, H = card.h, ox = card.ax, oy = card.ay;
   g.clearRect(0, 0, W, H);
   const sp = Math.hypot(R.vx, R.vy), f = R.facing, face = Math.max(0.12, Math.abs(R.faceVis));
   g.save();
   g.translate(ox, oy);
-  g.rotate(A.rot + (A.spin || 0));
+  { const pv = sc * 150 * (opts.k || 1); g.translate(0, -pv); g.rotate(A.rot + (A.spin || 0) + (A.tumble || 0)); g.translate(0, pv); }   // spin about mid-body
   // stretch along the motion vector at speed (in figure space), squash/stretch vertically from the spring
   const k = clamp((sp - 0.55 * PH.vmax) / (0.6 * PH.vmax), 0, 1) * 0.1;
   const ang = Math.atan2(-R.vy, R.vx);
   g.rotate(ang); g.scale(1 + k, 1 - k * 0.6); g.rotate(-ang);
   const q = clamp(A.q, -0.32, 0.3);
   g.scale((1 - q * 0.65) * face, 1 + q);
-  const J = sketchman(g, { x: 0, y: 0, s: sc, dir: f, pose: A.pose, vel: [R.vx / PH.H, R.vy / PH.H], hemOff: [A.hem[0], A.hem[1]],
-    tailChain: A.chain.map(n => [n.x, n.y]), face: { eyes: R.ground && A.w.skid > 0.5 ? 'wide' : 'dot', brows: A.w.skid > 0.5 ? 'worried' : 'soft', mouth: A.w.air > 0.5 ? 'o' : A.w.skid > 0.5 ? 'wobbly' : 'line' } });
+  const J = sketchman(g, { x: 0, y: 0, s: sc * (opts.k || 1), dir: f, pose: A.pose, look: opts.look || LOOKS.jonah, id: opts.id || 'J', back: opts.back, seaweed: opts.seaweed, shake: opts.shake || 0, vel: [R.vx / PH.H, R.vy / PH.H], hemOff: [A.hem[0], A.hem[1]],
+    tailChain: A.chain.map(n => [n.x, n.y]), face: { eyes: R.ground && A.w.skid > 0.5 ? 'wide' : 'dot', brows: A.w.skid > 0.5 ? 'worried' : 'soft', mouth: A.w.air > 0.5 ? 'o' : A.w.skid > 0.5 ? 'wobbly' : 'line', ...(opts.face || {}) } });
   g.restore();
   // smear frames: tapered ink arcs from recent tip positions when a limb or the body moves fast
   const HIST = A.hist;

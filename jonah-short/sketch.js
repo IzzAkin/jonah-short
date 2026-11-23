@@ -12,6 +12,25 @@ const SK = {
   runPeriod: 0.5, walkPeriod: 0.9, g: 12.8,
 };
 const D2R = PI / 180;
+// Looks for the whole cast. robe: two stripe colours (same twice = plain); head: wrap | scarf | headband | cap |
+// crown | veil | hair | bald; tails: tied cloth that trails on springs; beard: colour + style (short | full | curly).
+const LOOKS = {
+  jonah:   { robe: ['#3f6fa8', '#d9c39a'], head: 'wrap', headCol: '#d9c08f', tails: true, beard: '#3a2a20', beardStyle: 'short', belt: '#c49a5a' },
+  sailor0: { robe: ['#b79f78', '#a68e68'], head: 'scarf', headCol: '#c8423a', tails: true, beard: null, belt: '#6b4428' },
+  sailor1: { robe: ['#9b8466', '#8a7458'], head: 'cap', headCol: '#3d68b5', beard: '#3a2a20', beardStyle: 'stache', belt: '#6b4428' },
+  sailor2: { robe: ['#7f8b69', '#717c5d'], head: 'bald', beard: '#6b4a2e', beardStyle: 'full', belt: '#6b4428' },
+  sailor3: { robe: ['#a9845e', '#9a7752'], head: 'headband', headCol: '#3f9a5a', tails: true, beard: null, belt: '#6b4428' },
+  king:    { robe: ['#8f1f24', '#a8282c'], head: 'crown', beard: '#1e1a1c', beardStyle: 'curly', belt: '#e0b03a', trim: '#e0b03a' },
+  kingSack:{ robe: ['#8b6b47', '#7d6040'], sack: true, head: 'bald', beard: '#1e1a1c', beardStyle: 'curly', belt: null },
+};
+const TOWN = [
+  { robe: ['#c94b3a', '#b8402f'], head: 'veil', headCol: '#e6c46a' }, { robe: ['#e1a23c', '#d0922e'], head: 'hair', headCol: '#2e2420', beard: '#2e2420', beardStyle: 'stache' },
+  { robe: ['#4a8fc4', '#3f7fb2'], head: 'bald', beard: '#9a9a9a', beardStyle: 'full' }, { robe: ['#7a5aa8', '#6c4e98'], head: 'veil', headCol: '#5aa0c4' },
+  { robe: ['#3f9a6a', '#358a5c'], head: 'hair', headCol: '#5a3d28', k: 0.66 }, { robe: ['#d6795a', '#c66a4c'], head: 'hair', headCol: '#5a3d28', beard: '#5a3d28', beardStyle: 'short' },
+  { robe: ['#2f6f8f', '#285f7d'], head: 'veil', headCol: '#b8487a' }, { robe: ['#b8487a', '#a63d6c'], head: 'veil', headCol: '#8cbf4a', k: 0.62 },
+  { robe: ['#9a7a3a', '#8a6c30'], head: 'scarf', headCol: '#3d68b5', tails: true },
+];
+const sackLook = L => ({ ...L, robe: ['#8b6b47', '#7d6040'], sack: true, trim: null, belt: null });
 
 // smooth deterministic noise for the hand-drawn "boil" (redrawn every frame = animated on ones)
 function hnoise(a, b) { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); }
@@ -50,6 +69,13 @@ const POSES = {
   stomp:   { lean: 12, aF: [135, 60], aB: [-135, -60], lF: [70, -95], lB: [-6, -6] },
   sink:    { lean: -10, aF: [170, 30], aB: [-165, -35], lF: [8, -30], lB: [-16, -45], air: 1 },
   sprawl:  { lean: 70, aF: [100, 10], aB: [-60, -20], lF: [-20, -40], lB: [-50, -30] },
+  armsUp:  { lean: -6, tilt: -12, aF: [168, 12], aB: [-168, -12], lF: [8, -4], lB: [-8, -6] },
+  plead:   { lean: 10, tilt: -6, aF: [52, 62], aB: [40, 70], lF: [8, -4], lB: [-8, -6] },
+  shocked: { lean: -14, tilt: -10, aF: [55, 105], aB: [-48, -105], lF: [12, -4], lB: [-16, -10] },
+  cower:   { lean: 18, tilt: 12, aF: [28, 125], aB: [24, 128], lF: [34, -50], lB: [20, -45] },
+  sitBow:  { lean: 22, tilt: 18, aF: [26, 105], aB: [24, 108], lF: [86, -84], lB: [80, -80] },
+  stare:   { lean: -6, tilt: -4, aF: [8, -4], aB: [-8, -4], lF: [8, -4], lB: [-8, -6] },
+  wave:    { lean: 2, aF: [150, -40], aB: [-10, -10], lF: [6, -4], lB: [-6, -4] },
 };
 function mixPose(a, b, k) {
   const o = {}; for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
@@ -68,7 +94,8 @@ function runPose(ph) {
 
 // ---- the figure
 function sketchman(g, o) {
-  const d = Object.assign({ x: 0, y: 0, s: 1, dir: 1, pose: 'idle', air: 0, vel: [0, 0], rot: 0, face: {}, back: false, seaweed: false, id: 'J', shake: 0 }, o);
+  const d = Object.assign({ x: 0, y: 0, s: 1, dir: 1, pose: 'idle', air: 0, vel: [0, 0], rot: 0, face: {}, back: false, seaweed: false, id: 'J', shake: 0, look: LOOKS.jonah }, o);
+  const LK = d.look;
   const H = SK.H, P = typeof d.pose === 'string' ? POSES[d.pose] : d.pose;
   const dir = d.dir;
   const br = Math.sin(NOW * 2.6) * 1.2;                          // breathing
@@ -110,12 +137,14 @@ function sketchman(g, o) {
   // front leg drawn first under the tunic hem so the shin pokes out below
   back([lF[0], lF[1]], 3); foot(lF, 23);
   tunicPath(); g.save(); g.clip();
-  for (let i = -8; i < 8; i++) { g.fillStyle = SK.robe[(i + 80) % 2]; g.fillRect(i * 22, -0.5 * H, 22, H); }
+  for (let i = -8; i < 8; i++) { g.fillStyle = LK.robe[(i + 80) % 2]; g.fillRect(i * 22, -0.5 * H, 22, H); }
+  if (LK.sack) for (let i = -10; i < 10; i++) { g.beginPath(); g.moveTo(i * 14, -0.5 * H); g.lineTo(i * 14 + 30, 0.5 * H); g.lineWidth = 2; g.strokeStyle = 'rgba(50,32,16,0.35)'; g.stroke(); }
+  if (LK.trim) { g.fillStyle = LK.trim; g.fillRect(-7, -0.5 * H, 14, H); g.fillRect(-200, kneeMid[1] - 2, 400, 12); }
   if (typeof CHAR_LIGHT !== 'undefined') { const sd = lightDir()[0] <= 0 ? 1 : -1, gr = g.createLinearGradient(-sd * 80, 0, sd * 80, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.55, 'rgba(0,0,0,0)'); gr.addColorStop(1, CHAR_LIGHT.robeShade); g.fillStyle = gr; g.fillRect(-200, -200, 400, 400); }
   g.restore();
   wobblePath(g, [...tun, tun[0]], 2.4, 30); g.lineWidth = SK.line * 0.9; g.strokeStyle = SK.ink; g.lineJoin = 'round'; g.stroke();
   // belt knot at the waist
-  circle(g, waist[0], waist[1], 7); fill(g, '#c49a5a'); g.lineWidth = 4; g.strokeStyle = SK.ink; g.stroke();
+  if (LK.belt) { circle(g, waist[0], waist[1], 7); fill(g, LK.belt); g.lineWidth = 4; g.strokeStyle = SK.ink; g.stroke(); }
   // torso line
   back([waist, [neck[0] * 0.6, neck[1] * 0.6], neck], 4);
   // head-wrap tails: follow-through (trail opposite to motion, droop with gravity, streak at speed)
@@ -125,7 +154,7 @@ function sketchman(g, o) {
   if (d.tailA !== undefined) { tx = Math.cos(d.tailA); ty = Math.sin(d.tailA); }
   else { const tg = tailTarget(vx, vy, dir); tx = Math.cos(tg); ty = Math.sin(tg); }
   const wave = Math.sin(NOW * 9) * (0.06 + Math.min(1, sp / 5) * 0.18);
-  if (d.tailChain) {
+  if (!LK.tails) {} else if (d.tailChain) {
     [[0, 1], [10, 0.8]].forEach(([off, sc], ti) => {
       const pts = d.tailChain.map(([cx, cy], j) => [anchor[0] + cx * dir * sc + (j ? off * 0.3 : 0), anchor[1] + cy * sc + (j ? off * 0.15 : 0)]);
       const L = [], Rr = [];
@@ -135,28 +164,38 @@ function sketchman(g, o) {
       for (let j = 1; j < L.length; j++) g.quadraticCurveTo(L[j - 1][0], L[j - 1][1], (L[j - 1][0] + L[j][0]) / 2, (L[j - 1][1] + L[j][1]) / 2);
       g.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]);
       for (let j = Rr.length - 1; j > 0; j--) g.quadraticCurveTo(Rr[j][0], Rr[j][1], (Rr[j - 1][0] + Rr[j][0]) / 2, (Rr[j - 1][1] + Rr[j][1]) / 2);
-      g.closePath(); g.fillStyle = SK.wrap; g.fill(); g.lineWidth = 5; g.strokeStyle = SK.ink; g.lineJoin = 'round'; g.stroke();
+      g.closePath(); g.fillStyle = LK.headCol; g.fill(); g.lineWidth = 5; g.strokeStyle = SK.ink; g.lineJoin = 'round'; g.stroke();
     });
-  } else [[1, 0.95], [0.75, 0.75]].forEach(([len, k], i) => {
+  } else if (LK.tails) [[1, 0.95], [0.75, 0.75]].forEach(([len, k], i) => {
     const L = (0.12 + 0.05 * Math.min(1, sp / 4)) * H * len;
     const a = Math.atan2(ty, tx) + (i ? 0.35 : -0.15) + wave * (i ? -1 : 1);
     const mid = [anchor[0] + Math.cos(a - wave * 0.6) * L * 0.5, anchor[1] + Math.sin(a - wave * 0.6) * L * 0.5];
     const end = [anchor[0] + Math.cos(a) * L, anchor[1] + Math.sin(a) * L];
     g.beginPath(); g.moveTo(anchor[0] - 6, anchor[1] - 5); g.quadraticCurveTo(mid[0], mid[1], end[0], end[1]); g.quadraticCurveTo(mid[0] + 8, mid[1] + 6, anchor[0] + 6, anchor[1] + 5); g.closePath();
-    g.fillStyle = SK.wrap; g.fill(); g.lineWidth = 5; g.strokeStyle = SK.ink; g.stroke();
+    g.fillStyle = LK.headCol; g.fill(); g.lineWidth = 5; g.strokeStyle = SK.ink; g.stroke();
     if (sp > 3) for (let k2 = 0; k2 < 3; k2++) { const off = (k2 - 1) * 10; inkLine(g, [[end[0] + Math.cos(a) * 12, end[1] + Math.sin(a) * 12 + off], [end[0] + Math.cos(a) * (40 + sp * 5), end[1] + Math.sin(a) * (40 + sp * 5) + off]], 3, 60 + k2, 'rgba(35,29,27,0.6)'); }
   });
-  // head: open circle, wrap band, beard, small face
+  // head: open circle, headwear, beard, small face
+  if (LK.head === 'veil') { g.beginPath(); g.moveTo(hc[0] - R * 1.15, hc[1] + R * 1.5); g.bezierCurveTo(hc[0] - R * 1.4, hc[1] - R * 1.6, hc[0] + R * 1.4, hc[1] - R * 1.6, hc[0] + R * 1.15, hc[1] + R * 1.5); g.closePath(); fill(g, LK.headCol); g.lineWidth = 6; g.strokeStyle = SK.ink; g.stroke(); }
   circle(g, hc[0], hc[1], R); fill(g, d.face.red ? '#e4573f' : SK.head);
   if (typeof CHAR_LIGHT !== 'undefined' && !d.face.red) { const [lx, ly] = lightDir(); g.save(); circle(g, hc[0], hc[1], R - 1); g.clip(); const gr = g.createLinearGradient(hc[0] + lx * R, hc[1] + ly * R, hc[0] - lx * R, hc[1] - ly * R); gr.addColorStop(0, hexA(CHAR_LIGHT.shade, 0)); gr.addColorStop(clamp(1 - 2 * CHAR_LIGHT.frac), hexA(CHAR_LIGHT.shade, 0)); gr.addColorStop(1, hexA(CHAR_LIGHT.shade, 0.9)); g.fillStyle = gr; g.fillRect(hc[0] - R, hc[1] - R, 2 * R, 2 * R); g.restore(); }
   wobblePath(g, Array.from({ length: 13 }, (_, i) => [hc[0] + Math.cos(i / 12 * TAU) * R, hc[1] + Math.sin(i / 12 * TAU) * R]), 0.9, 40); g.lineWidth = 7; g.strokeStyle = SK.ink; g.stroke();
-  g.save(); circle(g, hc[0], hc[1], R); g.clip();
-  g.fillStyle = SK.wrap; g.fillRect(hc[0] - R, hc[1] - R, 2 * R, R * 0.55);
-  g.restore(); inkLine(g, [[hc[0] - R * 0.97, hc[1] - R * 0.45], [hc[0], hc[1] - R * 0.5], [hc[0] + R * 0.97, hc[1] - R * 0.45]], 5, 41);
-  circle(g, anchor[0], anchor[1], 8); fill(g, SK.wrap); g.lineWidth = 4; g.strokeStyle = SK.ink; g.stroke();
+  const hw = LK.head, hcol = LK.headCol;
+  const band = (h0, h1) => { g.save(); circle(g, hc[0], hc[1], R); g.clip(); g.fillStyle = hcol; g.fillRect(hc[0] - R, hc[1] - R, 2 * R, R * h0); g.restore(); inkLine(g, [[hc[0] - R * 0.97, hc[1] - R * h1], [hc[0], hc[1] - R * (h1 + 0.05)], [hc[0] + R * 0.97, hc[1] - R * h1]], 5, 41); };
+  if (hw === 'wrap' || hw === 'scarf') band(0.55, 0.45);
+  if (hw === 'headband') { g.save(); circle(g, hc[0], hc[1], R); g.clip(); g.fillStyle = hcol; g.fillRect(hc[0] - R, hc[1] - R * 0.62, 2 * R, R * 0.26); g.restore(); inkLine(g, [[hc[0] - R, hc[1] - R * 0.62], [hc[0] + R, hc[1] - R * 0.62]], 4, 42); inkLine(g, [[hc[0] - R, hc[1] - R * 0.36], [hc[0] + R, hc[1] - R * 0.36]], 4, 43); }
+  if (hw === 'veil') band(0.5, 0.4);
+  if (hw === 'hair') { g.save(); circle(g, hc[0], hc[1], R); g.clip(); g.fillStyle = hcol; g.fillRect(hc[0] - R, hc[1] - R, 2 * R, R * 0.5); g.restore(); for (let i = -2; i <= 2; i++) { circle(g, hc[0] + i * R * 0.38, hc[1] - R * 0.82 + Math.abs(i) * R * 0.1, R * 0.26); fill(g, hcol); g.lineWidth = 4; g.strokeStyle = SK.ink; g.stroke(); } }
+  if (hw === 'cap') { g.beginPath(); g.arc(hc[0], hc[1], R + 3, PI + 0.18, TAU - 0.18); g.closePath(); fill(g, hcol); g.lineWidth = 6; g.strokeStyle = SK.ink; g.stroke(); const by = hc[1] - R * 0.52; g.beginPath(); g.moveTo(hc[0] - dir * R * 0.1, by); g.quadraticCurveTo(hc[0] + dir * R * 0.9, by - 3, hc[0] + dir * R * 1.45, by + 6); g.quadraticCurveTo(hc[0] + dir * R * 0.8, by + 10, hc[0] - dir * R * 0.1, by + 6); fill(g, '#2f5694'); g.lineWidth = 4; g.stroke(); }
+  if (hw === 'crown') { const cy = hc[1] - R * 0.75; rrect(g, hc[0] - R * 0.62, cy - R * 1.25, R * 1.24, R * 1.3, 4); fill(g, '#b5302d'); g.lineWidth = 6; g.strokeStyle = SK.ink; g.stroke(); [cy - R * 0.1, cy - R * 1.25].forEach(y => { rrect(g, hc[0] - R * 0.68, y, R * 1.36, R * 0.2, 3); fill(g, '#e8b63c'); g.lineWidth = 4; g.stroke(); }); [-1, 0, 1].forEach(i => { circle(g, hc[0] + i * R * 0.35, cy - R * 0.6, R * 0.1); fill(g, '#e8b63c'); g.lineWidth = 3; g.stroke(); }); }
+  if (LK.tails) { circle(g, anchor[0], anchor[1], 8); fill(g, hcol); g.lineWidth = 4; g.strokeStyle = SK.ink; g.stroke(); }
   if (!d.back) {
     const fx = hc[0] + dir * R * 0.25, fy = hc[1];
-    g.beginPath(); g.arc(fx - dir * 2, fy + 4, R * 0.78, 0.18 * PI, 0.82 * PI); g.quadraticCurveTo(fx - dir * 2, fy + R * 1.05, fx - dir * 2 + R * 0.78 * Math.cos(0.18 * PI), fy + 4 + R * 0.78 * Math.sin(0.18 * PI)); g.fillStyle = SK.beard; g.fill();
+    const bc = LK.beard, bs = LK.beardStyle;
+    if (bc && (bs === 'short' || bs === 'full')) { g.beginPath(); g.arc(fx - dir * 2, fy + 4, R * 0.78, 0.18 * PI, 0.82 * PI); g.quadraticCurveTo(fx - dir * 2, fy + R * (bs === 'full' ? 1.9 : 1.05), fx - dir * 2 + R * 0.78 * Math.cos(0.18 * PI), fy + 4 + R * 0.78 * Math.sin(0.18 * PI)); g.fillStyle = bc; g.fill(); }
+    if (bc && bs === 'curly') { const bx = fx - dir * 1; g.beginPath(); g.moveTo(bx - R * 0.72, fy + R * 0.25); g.bezierCurveTo(bx - R * 0.8, fy + R * 1.4, bx - R * 0.3, fy + R * 2.2, bx, fy + R * 2.3); g.bezierCurveTo(bx + R * 0.3, fy + R * 2.2, bx + R * 0.8, fy + R * 1.4, bx + R * 0.72, fy + R * 0.25); g.quadraticCurveTo(bx, fy + R * 0.55, bx - R * 0.72, fy + R * 0.25); g.fillStyle = bc; g.fill();
+      g.strokeStyle = 'rgba(255,255,255,0.28)'; g.lineWidth = 2.5; for (let r = 0; r < 5; r++) for (let c = -2; c <= 2; c++) { g.beginPath(); g.arc(bx + c * R * 0.26 + (r % 2) * R * 0.13, fy + R * 0.7 + r * R * 0.3, R * 0.09, 0.2, PI + 1); g.stroke(); } }
+    if (bc && bs === 'stache') { const sx2 = fx + dir * 2, sy2 = fy + 8; g.beginPath(); g.moveTo(sx2, sy2 - 2); g.quadraticCurveTo(sx2 - 12, sy2 - 6, sx2 - 16, sy2 + 3); g.quadraticCurveTo(sx2 - 8, sy2 + 1, sx2, sy2 + 2); g.quadraticCurveTo(sx2 + 8, sy2 + 1, sx2 + 16, sy2 + 3); g.quadraticCurveTo(sx2 + 12, sy2 - 6, sx2, sy2 - 2); g.fillStyle = bc; g.fill(); }
     const f = d.face, blink = blinkClosed(d.id, NOW, false) && (f.eyes || 'dot') !== 'closed';
     const ex = [fx - 9, fx + 9].map(x => x + dir * 2), ey = fy - 6;
     ex.forEach((x, i) => {

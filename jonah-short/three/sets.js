@@ -57,18 +57,26 @@ function makeFish() {
   const drops = [0, 1, 2, 3].map(i => sph(sc, 0.05, '#a8f5ea', [0, 0, 0], { emissive: '#7fe8dc', ei: 0.8, s: [1, 1.5, 1] }));
   drops.forEach(d => (d.castShadow = false));
   const J = LEAD(sc), cam = newCam();
+  const tRun = wt(1, 'running');
+  // trapped and jittery: clutching, a nervous shuffle and glances over each shoulder on 'running from God'
+  const jFear = new Actor({ card: J, id: 'J', x: 0, floor: 0, dir: 1,
+    script: t => ({ act: 'arms', actLife: 1.8, left: within(t, tRun, tRun + 0.09), right: within(t, tRun + 0.55, tRun + 0.62), faceTo: t > tRun + 0.3 && t < tRun + 0.55 ? -1 : 1 }),
+    face: () => ({ eyes: 'wide', brows: 'worried', mouth: 'wobbly', sweat: true }) });
+  // three days of prayer: sinks to his knees, then bows
+  const jPray = new Actor({ card: J, id: 'J', x: 0, floor: 0, dir: 1,
+    script: t => ({ act: t < 0.6 ? 'kneel' : 'pray', actRate: 5, actLife: 0.7 }), face: () => ({ eyes: 'closed', brows: 'soft' }) });
   const tick = t => { drops.forEach((d, i) => { const per = 1.3 + i * 0.37, ph = mod(t + i * 0.53, per) / per; d.position.set([-1.6, 1.3, 0.9, -0.6][i], lerp(4.2, 0.05, ph * ph), [-1, -3, 1.5, -5][i]); }); };
   return {
     shot1(t) {
       tick(t); tally.forEach(m => (m.visible = false));
       cam3(cam, t, [[0, { p: [0.14, 1.38, 1.25], l: [0, 1.36, 0] }], [0.7, { p: [0.14, 1.38, 1.25], l: [0, 1.36, 0] }], [3.9, { p: [0, 1.7, 6.6], l: [0, 1.25, -2] }]]);
-      J.sketch({ ...jonahFrame(t, [[0, mixPose(POSES.idle, POSES.arms, 0.4)]], { dir: 1, life: 1.6 }), face: { eyes: 'wide', brows: 'worried', mouth: 'wobbly', sweat: true } }).at(0, 0, 0, cam);
+      jFear.draw(t, cam);
       return { scene: sc, camera: cam };
     },
     pray(t, tDays, tNights, tPray) {
       tick(t); [tDays, tNights, tPray].forEach((tm, i) => (tally[i].visible = t >= tm));
       cam3(cam, t, [[0, { p: [0.35, 1.3, 5.6], l: [0, 1.0, 0] }], [3.0, { p: [0.1, 1.15, 3.7], l: [0, 0.9, 0] }]]);
-      J.sketch({ ...jonahFrame(t, [[0, 'kneel'], [0.9, 'pray', 0.7]], { dir: 1, life: 0.7 }), face: { eyes: 'closed', brows: 'soft' } }).at(0, 0, 0, cam);
+      jPray.draw(t, cam);
       return { scene: sc, camera: cam };
     },
   };
@@ -116,23 +124,35 @@ function makeHarbor() {
   [[3.5, -2.2], [4.3, -2.6], [3.9, -1.5]].forEach(([x, z], i) => box(sc, 0.8, 0.8, 0.8, '#b07a48', [x, 0.4 + (i === 2 ? 0.8 : 0), z], { map: texPlanks('#b07a48', 'rgba(40,20,10,0.6)', [1, 1]) }));
   const coins = [0, 1, 2].map(() => cyl(sc, 0.07, 0.07, 0.02, '#f2c13c', [0, 0, 0], { emissive: '#b8860b', ei: 0.4, ol: 0.008 }));
   const J = LEAD(sc), S = CREW(sc), cam = newCam();
+  const tJ = wt(2, 'Jonah', 2), tTicket = wt(2, 'ticket'), tOpp = wt(2, 'opposite'), tc = tJ - 0.1;
+  // Jonah: studies the NINEVEH sign, edges toward it, then whips round and sprints the other way, skids to a stop at the
+  // sailor, pays, and bolts for the ship. The sailor counts the coins and turns to watch him go.
+  const jon = new Actor({ card: J, id: 'J', x: 0, z: 0, dir: -1,
+    script: (t, R) => {
+      if (t < 0.9) return { act: 'stare' };
+      if (t < tc - 0.6) return seek(R, -1.0, 1.1);
+      if (t < tc) return { act: 'stare' };
+      if (t < tTicket - 0.4) return seek(R, 0.7);
+      if (t < tOpp + 0.25) return { act: t > tTicket - 0.35 ? 'pay' : null, faceTo: 1 };
+      return { right: true };
+    },
+    face: t => t < tc ? { eyes: 'dot', brows: 'worried', mouth: 'frown' } : t < tOpp + 0.25 ? { brows: 'raised', mouth: 'smile' } : { eyes: 'dot', brows: 'soft', mouth: 'smile' } });
+  const sailorA = new Actor({ card: S, id: 'S1', x: 2.05, z: -0.1, dir: -1, look: LOOKS.sailor1,
+    script: (t, R) => ({ act: t > tTicket - 0.2 && t < tOpp + 0.6 ? 'plead' : t > tOpp + 0.7 ? 'wave' : null, faceTo: t > tOpp + 0.45 ? 1 : -1, actRate: 6 }),
+    face: t => ({ eyes: t > tOpp + 0.45 ? 'wide' : 'dot', mouth: t > tTicket ? 'smile' : 'line' }) });
   const fn = function (t) {
-    const tJ = wt(2, 'Jonah', 2), tTicket = wt(2, 'ticket'), tOpp = wt(2, 'opposite'), tc = tJ - 0.1;
     sea.userData.update(NOW); shipFlag.userData.update(NOW);
+    jon.advance(t);
+    const jx = jon.R.x;
     cam3(cam, t, [[0, { p: [-8.3, 1.8, 6.8], l: [-8.2, 2.3, -1] }], [0.6, { p: [-8.3, 1.8, 6.8], l: [-8.2, 2.3, -1] }], [tc, { p: [-6, 1.75, 6.8], l: [-5.6, 1.9, -1] }],
-      [tc, { p: [0.75, 1.45, 5.6], l: [0.75, 1.15, 0] }, 'cut'], [tOpp, { p: [0.95, 1.45, 5.6], l: [0.95, 1.15, 0] }], [6.0, { p: [10, 2.3, 7.4], l: [15.5, 1.4, -1.8] }]]);
-    const turned = t >= tJ - 0.1;
-    // skid-turn away from the NINEVEH sign (measured skid: lean back, arms flung out, dust), then pay
-    const vel2 = tt => [tt > tc - 0.25 && tt < tc + 0.05 ? -2.5 : tt >= tc + 0.05 && tt < tc + 0.35 ? 1.5 : 0, 0];
-    const fJ = jonahFrame(t, [[0, 'idle'], [tc + 0.02, 'skid', 0.22], [tc + 0.5, 'idle', 0.45], [tTicket, 'pay', 0.4]], { dir: turned ? 1 : -1, vel: vel2 });
-    J.sketch({ ...fJ, face: { brows: turned ? 'raised' : 'worried', mouth: turned ? 'smile' : 'frown' } },
-      (g, c) => dustPuff(g, c.ax, c.ay, seg(t, tc, tc + 0.55), 1.4)).at(0, 0, 0, cam);
-    S.person({ ...SAILORS[1], dir: -1, eyes: 'dot', mouth: 'smile', arms: t > tTicket - 0.2 ? { l: [62, 70], r: [14, 4] } : DOWN }).at(1.55, 0, -0.1, cam);
+      [tc, { p: [0.75, 1.45, 6.2], l: [0.75, 1.15, 0] }, 'cut'], [tOpp + 0.25, { p: [0.95, 1.45, 6.2], l: [0.95, 1.15, 0] }], [6.3, { p: [3.6, 1.5, 6.4], l: [4.6, 1.15, 0] }]]);
+    jon.draw(t, cam, (g, c, R) => { if (R.skid) dustPuff(g, c.ax, c.ay, mod(t * 4, 1), 1.3, 3); });
+    sailorA.draw(t, cam);
     const k = seg(t, tTicket - 0.05, tTicket + 0.45);
     coins.forEach((c, i) => {
       const kk = clamp(k * 1.4 - i * 0.2);
-      c.visible = k > 0;
-      c.position.set(lerp(0.66, 0.95, kk), lerp(0.95, 0.83, kk) + Math.sin(kk * PI) * 0.5, 0.08 + i * 0.03);
+      c.visible = k > 0 && t < tOpp + 0.6;
+      c.position.set(lerp(jx + 0.32, 1.75, kk), lerp(0.95, 0.88, kk) + Math.sin(kk * PI) * 0.5, 0.08 + i * 0.03);
       c.rotation.set(t * 12 + i, 0, t * 9);
     });
     return { scene: sc, camera: cam };
@@ -184,6 +204,21 @@ function makeShip() {
   sunSprite(bd, [1.0, 3.0, 0.95], 2.6, 'rgba(255,210,140,0.9)', 'rgba(255,150,60,0)');
   const Jl = new Card(bd, { w: 1536, h: 1024, ax: 768, ay: 640, pxm: 470, base: 1.9, blob: 0, castShadow: false });
   const bcam = newCam();
+  const roll = t => Math.sin(1.7 * (SHOTS[2].a + t));
+  const stormActs = ['armsUp', 'arms', 'pray', 'plead'], stormFaces = [{ eyes: 'wide', brows: 'worried', mouth: 'open' }, { eyes: 'closed', brows: 'worried', mouth: 'wobbly' }, { eyes: 'closed', brows: 'worried', mouth: 'frown' }, { eyes: 'wide', brows: 'worried', mouth: 'o' }];
+  const stormCrew = [0, 1, 2, 3].map(i => new Actor({ card: sailors[i], id: 'S' + i, x: i * 2.5, floor: 0, dir: i % 2 ? -1 : 1, look: LOOKS['sailor' + i],
+    // the deck pitches: the standing sailors stagger a half-step with each roll, the kneeling one rocks in place
+    script: t => ({ act: stormActs[i], actLife: 1.6, right: i !== 2 && roll(t) > 0.92, left: i !== 2 && roll(t) < -0.92, cap: 0.7, faceTo: i % 2 ? -1 : 1 }),
+    face: () => stormFaces[i] }));
+  const tJ4 = wt(4, 'Jonah.'), tThrow4 = wt(4, '“Throw');
+  const lotCrew = [[1.3, 0.3, 1, 0], [2.1, -0.6, 1, 2], [5.6, -0.4, -1, 1], [6.5, 0.3, -1, 3]].map(([x, z, dir, si], i) => new Actor({ card: sailors[i], id: 'S' + si, x, z, floor: 0, dir, look: LOOKS['sailor' + si],
+    // nervous huddle; when the lot falls on Jonah they lean back and stare at him
+    script: t => ({ act: t > tJ4 - 0.05 ? 'shocked' : 'arms', actRate: t > tJ4 - 0.05 ? 10 : 6, faceTo: dir, left: dir < 0 && within(t, tJ4 + 0.05, tJ4 + 0.12), right: dir > 0 && within(t, tJ4 + 0.05, tJ4 + 0.12) }),
+    face: t => t > tJ4 - 0.05 ? { eyes: 'wide', brows: 'raised', mouth: 'o' } : { eyes: 'dot', brows: 'worried', mouth: 'line' } }));
+  // Jonah startles back when the lot rolls to his feet, then steps up and points out to sea: 'Throw me in'
+  const jLot = new Actor({ card: J, id: 'J', x: 4.4, floor: 0, dir: 1,
+    script: (t, R) => t < tJ4 ? { act: 'stare' } : t < tJ4 + 0.12 ? { left: true } : t < tThrow4 - 0.2 ? { faceTo: 1, act: 'stare' } : t < tThrow4 + 0.4 ? { ...seek(R, 4.75, 1.2), act: 'point' } : { act: 'point', faceTo: 1 },
+    face: t => t < tJ4 ? { eyes: 'dot', brows: 'worried' } : t < tThrow4 - 0.15 ? { eyes: 'wide', brows: 'raised', mouth: 'o' } : { eyes: 'dot', brows: 'flat', mouth: 'open' } });
   const deckPose = (t, flash) => { ship.rotation.z = 0.028 * Math.sin(NOW * 1.7); ship.rotation.x = 0.018 * Math.sin(NOW * 1.3); sea.userData.update(NOW); L.hemi.intensity = 1.0 + flash * 3.5; L.sun.intensity = 1.3 + flash * 2; };
   const stormPost = (t, flash, seed) => g => { rain(g, NOW, 170, 0.42); if (flash > 0) { bolt(g, seed === 3 ? 760 : 220, -100, 900, seed, flash); g.fillStyle = `rgba(225,235,255,${flash * 0.5})`; g.fillRect(0, 0, W, H); } };
   return {
@@ -198,7 +233,7 @@ function makeShip() {
           { arms: CLASP, eyes: 'closed', brows: 'worried', mouth: 'wobbly', dir: -1 },
           { pose: 'kneel', bow: 0.6, arms: { l: [120, 160], r: [120, 160] }, eyes: 'closed', brows: 'worried', mouth: 'frown', dir: 1 },
           { arms: { l: [80, 150], r: [80, 150] }, eyes: 'wide', brows: 'worried', mouth: 'o', dir: -1 }];
-        sailors.forEach((c, i) => c.person({ ...SAILORS[i], ...pose[i] }).at(i * 2.5, 0, 0, cam));
+        stormCrew.forEach(a => a.draw(t, cam));
         return { scene: sc, camera: cam, post: g => { stormPost(t, flash, 3)(g); dark(g, seg(t, tB, tB + 0.3)); } };
       }
       const tb = t - tB;
@@ -221,9 +256,9 @@ function makeShip() {
       const k = sstep(t, tFell - 0.1, tJ - 0.05); lot.visible = true;
       lot.position.set(lerp(3.2, 4.25, k), lerp(1.18, 0.07, k) + Math.sin(k * PI) * 0.35, lerp(0.05, 0.6, k));
       const stare = t > tJ - 0.05, speaking = t > tThrow - 0.15;
-      [[1.3, 0.3, 1, 0], [2.1, -0.6, 1, 2], [5.6, -0.4, -1, 1], [6.5, 0.3, -1, 3]].forEach(([x, z, dir, si], i) =>
-        sailors[i].person({ ...SAILORS[si], dir, eyes: 'wide', look: stare ? dir : dir * 0.3, brows: stare ? 'raised' : 'worried', mouth: stare ? 'o' : 'line' }).at(x, 0, z, cam));
-      J.sketch({ ...jonahFrame(t, [[0, 'idle'], [tThrow + 0.1, 'point', 0.4]], { dir: 1, vel: () => [-1.2, 0] }), face: { eyes: speaking ? 'dot' : 'wide', brows: speaking ? 'flat' : 'raised', mouth: speaking ? 'open' : 'line' } }).at(4.4, 0, 0, cam);
+      lotCrew.forEach(a => a.draw(t, cam));
+
+      jLot.draw(t, cam);
       return { scene: sc, camera: cam, post: stormPost(t, flash, 9) };
     },
   };
@@ -286,22 +321,16 @@ function makeBeach() {
   const J = LEAD(sc);
   const F = new Card(sc, { w: 2048, h: 1024, ax: 1024, ay: 560, pxm: 110, face: 'cam', blob: 0, castShadow: false });
   const cam = newCam();
+  const tS7 = wt(7, 'spat') + 0.05;
+  const jSpat = new Actor({ card: J, id: 'J', x: 2.6, y: 1.1, z: 1.7, floor: 0, dir: 1, start: tS7, seaweed: true,
+    init: R => Object.assign(R, { ground: false, vx: -2.5, vy: 5.6, airT: 0 }),
+    script: (t, R) => !R.ground ? { tumble: -TAU / 0.8, down: R.vy < 0, jump: R.vy > 0 } : R.rollT > 0 ? {} : { act: 'kneel', actRate: 5 },
+    face: (t, R) => !R.ground || R.rollT > 0 ? { eyes: 'wide', mouth: 'o' } : { eyes: 'wide', brows: 'raised', mouth: 'wobbly' } });
   return function (tb) {
     sea.userData.update(NOW); foam.position.z = -2.9 + Math.sin(NOW * 1.3) * 0.35; foam.material.opacity = 0.6 + 0.3 * Math.sin(NOW * 1.3 + 1);
     cam3(cam, tb, [[0, { p: [0.9, 1.6, 7.4], l: [1.1, 0.7, -2] }], [2.8, { p: [0.9, 1.5, 6.8], l: [1.1, 0.6, -2] }]]);
     // spat out: a tumbling ballistic arc (measured gravity 12.8 H/s^2), dust-puff landing, then dazed on his knees
-    const tS = wt(7, 'spat') + 0.05, Tf = 0.62, u = tb - tS;
-    if (u < 0) J.hide();
-    else if (u < Tf) {
-      const k = u / Tf, Hm = 1.65, v0 = 0.5 * SK.g * Tf;          // lands exactly at u = Tf
-      const air = (v0 * u - 0.5 * SK.g * u * u) * Hm + 0.4 * (1 - k);
-      const vyU = uu => (v0 - SK.g * uu) * 1.0;
-      J.sketch({ ...jonahFrame(u, [[0, uu => airPose(vyU(uu))]], { dir: -1, vel: uu => [-4, vyU(uu)] }), rot: -smooth5(k) * TAU, seaweed: true, face: { eyes: 'wide', mouth: 'o' } }).at(lerp(3.2, 0.35, k), air, lerp(-0.5, 1.7, k), cam);
-    } else {
-      const l = u - Tf;
-      const p = l < 0.17 ? 'land' : l < 0.3 ? mixPose(POSES.land, POSES.kneel, (l - 0.17) / 0.13) : 'kneel';
-      J.sketch({ ...jonahFrame(l, [[-0.05, 'fall'], [0.05, 'land', 0.08], [0.2, 'land', 0.1], [0.7, 'kneel', 0.45]], { dir: 1, vel: ll => [ll < 0.15 ? -2 : 0, 0] }), seaweed: true, face: { eyes: 'wide', brows: 'raised', mouth: 'wobbly' } }, (g, c) => dustPuff(g, c.ax, c.ay, l / 0.6, 1.5, 4)).at(0.35, 0, 1.7, cam);
-    }
+    jSpat.draw(tb, cam, (g, c, R) => { if (R.landAge < 0.7 && R.landImpact > 3) dustPuff(g, c.ax, c.ay, R.landAge / 0.7, 1.6, 5); });
     const fk = sstep(tb, 0.2, 2.6);
     F.roll = 0; F.draw(g => fish(g, 1024, 560, 1.1, 0, 0)).at(lerp(2.6, 9, fk), lerp(0.8, -0.7, fk), lerp(-7, -12, fk), cam, 0.55);
     return { scene: sc, camera: cam };
@@ -356,17 +385,29 @@ function makeGate() {
   const r = rng(21);
   const crowd = robes.map((c, i) => ({ card: CREW(sc), id: 'C' + i, crowd: true, robe: c, ...heads[i], kid: i === 4 || i === 7, x: 0.6 + i * 0.5 + (r() - 0.5) * 0.25, z: -0.6 + (i % 3) * 0.55 + r() * 0.3, dir0: r() < 0.5 ? 1 : -1, mood: ['smile', 'line', 'smile'][i % 3] }));
   const J = LEAD(sc), cam = newCam();
+  const tSaid8 = wt(8, 'said'), t408 = wt(8, '“40'), tOver8 = wt(8, 'overthrown.”');
+  const jGate = new Actor({ card: J, id: 'J', x: -7.5, z: 0.7, floor: 0, dir: 1,
+    script: (t, R) => t < 0.5 ? { act: 'stare' } : t < t408 - 0.1 ? seek(R, -1.6, 1.8) : { act: 'proclaim', faceTo: 1, actRate: 9 },
+    face: t => t > t408 - 0.15 ? { brows: 'raised', mouth: 'open' } : { brows: 'soft', mouth: 'line' } });
+  const townCrew = crowd.map((c, i) => {
+    const look = TOWN[i % TOWN.length], kid = !!look.k, react = t408 - 0.1 + i * 0.05;
+    const walker = i === 1 ? [3.2, 1.1] : i === 6 ? [1.6, 3.7] : null;
+    return new Actor({ card: c.card, id: c.id, x: walker ? walker[0] : c.x, z: c.z, floor: 0, dir: walker ? Math.sign(walker[1] - walker[0]) : c.dir0, look, k: look.k,
+      script: (t, R) => {
+        if (t < react) return walker && t > 0.4 ? seek(R, walker[1], 1.2) : { act: i % 3 === 0 ? 'wave' : null, actRate: 3 };
+        if (t > tOver8 && i % 2 === 0) return { ...seek(R, c.x + 0.45, 1.4), act: kid ? 'cower' : 'shocked', faceTo: -1 };
+        return { act: kid ? 'cower' : 'shocked', faceTo: -1, actRate: 11 };
+      },
+      face: t => t > react ? { eyes: 'wide', brows: 'raised', mouth: 'o' } : { mouth: c.mood } });
+  });
   return function (t) {
     const tSaid = wt(8, 'said'), t40 = wt(8, '“40');
     flags.forEach(f => f.userData.update(NOW));
     cam3(cam, t, [[0, { p: [0, 2.4, 13.5], l: [0, 4.2, -10] }], [0.4, { p: [0, 2.4, 13.5], l: [0, 4.2, -10] }], [tSaid, { p: [-0.5, 1.6, 7.8], l: [-0.2, 1.3, 0] }],
       [t40 - 0.15, { p: [-1.0, 1.55, 6.2], l: [-0.65, 1.35, 0] }, 'cut']]);
     const turned = t > t40 - 0.1;
-    crowd.forEach(c => c.card.person({ ...c, dir: turned ? -1 : c.dir0, eyes: turned ? 'wide' : 'dot', look: -1, brows: turned ? 'raised' : null, mouth: turned ? 'o' : c.mood }, c.kid ? 0.66 : 1).at(c.x, 0, c.z, cam));
-    const wk = seg(t, 0.5, tSaid), proclaim = t > t40 - 0.15;
-    const jxAt = tt => lerp(-7.5, -1.6, seg(tt, 0.5, tSaid));
-    const walkK = [[0, tt => walkPose((jxAt(tt) + 7.5) / 2.7 * TAU)], [tSaid + 0.1, 'idle', 0.35], [t40 - 0.05, 'proclaim', 0.4]];
-    J.sketch({ ...jonahFrame(t, walkK, { dir: 1, vel: tt => [(jxAt(tt + 0.02) - jxAt(tt - 0.02)) / 0.04 / 1.65, 0] }), face: { brows: proclaim ? 'raised' : 'soft', mouth: proclaim ? 'open' : 'line' } }).at(jxAt(t), 0, 0.7, cam);
+    townCrew.forEach(a => a.draw(t, cam));
+    jGate.draw(t, cam);
     return { scene: sc, camera: cam };
   };
 }
@@ -398,6 +439,14 @@ function makeSquare() {
   const rr = rng(77), people = [];
   for (let row = 0; row < 3; row++) for (let i = 0; i < 6; i++) people.push({ card: CREW(sc), id: 'P' + row + '_' + i, crowd: true, ...looks[Math.floor(rr() * looks.length)], kid: rr() < 0.18, x: -9.5 + i * 1.6 + row * 0.6 + (rr() - 0.5) * 0.4, z: 1.2 - row * 1.4, dir: rr() < 0.7 ? 1 : -1 });
   const K = LEAD(sc), cam = newCam();
+  const tSp9 = wt(9, 'spared');
+  const kneelers = people.map((p, i) => { const look = sackLook(TOWN[i % TOWN.length]), lift = tSp9 + 0.25 + (i % 6) * 0.09;
+    return new Actor({ card: p.card, id: p.id, x: p.x, z: p.z, floor: 0, dir: p.dir, look, k: p.kid ? 0.66 : 0.95,
+      script: t => ({ act: t < lift ? 'pray' : 'kneel', actRate: t < lift ? 8 : 3, actLife: t < lift ? 0.6 : 1 }),
+      face: t => t < lift ? { eyes: 'closed', brows: 'worried' } : { eyes: 'dot', brows: 'raised', mouth: 'smile' } }); });
+  const king = new Actor({ card: K, id: 'K', x: 6, z: -2, floor: 0.42, dir: -1, look: LOOKS.kingSack,
+    script: t => ({ act: t < tSp9 + 0.4 ? 'sitBow' : 'sit', actRate: t < tSp9 + 0.4 ? 8 : 2.5, actLife: 0.7 }),
+    face: t => t < tSp9 + 0.4 ? { eyes: 'closed', brows: 'worried', mouth: 'frown' } : { eyes: 'dot', brows: 'raised', mouth: 'line' } });
   const sg = skyCv.getContext('2d');
   return function (t) {
     const tSpared = wt(9, 'spared'), tEven = wt(9, 'Even') - 0.1;
@@ -412,8 +461,8 @@ function makeSquare() {
     rays.forEach(m => (m.material.opacity = cl * 0.3));
     cam3(cam, t, [[0, { p: [-5.6, 1.4, 5.6], l: [-4.6, 0.8, -1] }], [0.3, { p: [-5.6, 1.4, 5.6], l: [-4.6, 0.8, -1] }], [tEven, { p: [-2.8, 1.4, 5.6], l: [-2, 0.8, -1] }],
       [tEven, { p: [6.4, 1.45, 3.7], l: [6, 1.15, -2] }, 'cut'], [tSpared - 0.5, { p: [6.4, 1.45, 3.5], l: [6, 1.15, -2] }], [tSpared + 1.0, { p: [3.6, 3.0, 11.5], l: [4.5, 4.6, -6] }]]);
-    people.forEach(p => p.card.person({ ...p, sack: true, pose: 'kneel', bow: 0.55, arms: CLASP, eyes: 'closed', brows: 'worried', mouth: 'line' }, p.kid ? 0.64 : 0.95).at(p.x, 0, p.z, cam));
-    K.person({ ...KING_SACK, dir: -1, pose: 'sit', bow: 0.3, arms: { l: [30, 20], r: [30, 20] }, eyes: 'closed', brows: 'worried', mouth: 'frown' }).at(6, 0.42, -2, cam);
+    kneelers.forEach(a => a.draw(t, cam));
+    king.draw(t, cam);
     return { scene: sc, camera: cam };
   };
 }
@@ -442,22 +491,19 @@ function makeHill() {
   [[8, '#cfa86e'], [5, '#e2c08c']].forEach(([w, c], i) => box(city, w, 2, w, c, [4, 1 + i * 2 + 1, -8], { ol: 0.05 }));
   const J = new Card(sc, { base: 1.53, blob: 0.95, h: 1800, ay: 1700 }), cam = newCam();
   const y0 = hf(0, 0);
+  const tFurH = wt(10, 'furious.'), tHedH = wt(10, 'He’d');
+  const jHill = new Actor({ card: J, id: 'J', x: 0, floor: y0, dir: -1,
+    script: t => t < tFurH - 0.16 ? { act: 'stare' } : t < tFurH - 0.1 ? { jump: true, jumpV: 3.6 } : t < tHedH ? { act: 'fury', actRate: 14 } : { act: 'arms', actRate: 5 },
+    face: t => t < tFurH - 0.1 ? { eyes: 'dot', brows: 'soft', mouth: 'frown' } : t < tHedH ? { red: true, eyes: 'angry', brows: 'angry', mouth: 'grit', steam: true } : { eyes: 'dot', brows: 'angry', mouth: 'frown' },
+    shake: (t, R) => t > tFurH && t < tHedH && R.ground ? 5 : 0 });
   return function (t) {
     const tFur = wt(10, 'furious.'), tHed = wt(10, 'He’d'), stomp = tFur + 0.12;
     const fury = t >= tFur && t < tHed;
     let shake = null;
     if (t > stomp && t < tHed) { const e = Math.exp(-(t - stomp) * 7); shake = [Math.sin(t * 90) * 0.02 * e, Math.cos(t * 77) * 0.016 * e]; }
-    cam3(cam, t, [[0, { p: [1.3, y0 + 1.9, 9], l: [0, y0 + 1.4, 0] }], [tFur, { p: [0.06, y0 + 1.36, 2.15], l: [0, y0 + 1.33, 0] }, 'cut'], [tHed, { p: [0.06, y0 + 1.36, 2.15], l: [0, y0 + 1.33, 0] }],
+    cam3(cam, t, [[0, { p: [1.3, y0 + 1.9, 9], l: [0, y0 + 1.4, 0] }], [tFur, { p: [0.06, y0 + 1.3, 3.1], l: [0, y0 + 1.2, 0] }, 'cut'], [tHed, { p: [0.06, y0 + 1.3, 3.1], l: [0, y0 + 1.2, 0] }],
       [tHed + 0.55, { p: [0.35, y0 + 1.4, 4.7], l: [0, y0 + 1.1, 0] }]], { shake });
-    // furious: a small stomp-hop on 'furious' (measured gravity), landing squat with dust, steam; then arms folded
-    const tJ = tFur - 0.05, v0h = 3.0, Tair = 2 * v0h / SK.g, tLand = tJ + Tair;
-    const airAt = tt => tt > tJ && tt < tLand ? v0h * (tt - tJ) - 0.5 * SK.g * (tt - tJ) ** 2 : 0;
-    const vyAt = tt => tt > tJ && tt < tLand ? v0h - SK.g * (tt - tJ) : 0;
-    const hopK = [[0, 'idle'], [tJ - 0.02, 'crouch', 0.1], [tJ + 0.06, tt => airPose(vyAt(tt)), 0.08], [tLand + 0.03, 'land', 0.06], [tLand + 0.2, 'land', 0.1], [tLand + 0.5, 'fury', 0.3], [tHed + 0.1, 'arms', 0.4]];
-    const fJ = jonahFrame(t, hopK, { dir: -1, vel: tt => [0, vyAt(tt)] });
-    J.sketch({ ...fJ, air: airAt(t), shake: fury && t > tLand + 0.4 ? 5 : 0,
-      face: { red: fury, eyes: fury ? 'angry' : 'dot', brows: t < tFur ? 'soft' : 'angry', mouth: fury ? 'grit' : 'frown', steam: fury } },
-      (g, c) => dustPuff(g, c.ax, c.ay, (t - tLand) / 0.6, 1.6, 4)).at(0, y0, 0, cam);
+    jHill.draw(t, cam, (g, c, R) => { if (R.landAge < 0.6 && R.landImpact > 1.5) dustPuff(g, c.ax, c.ay, R.landAge / 0.6, 1.5, 4); });
     return { scene: sc, camera: cam };
   };
 }
@@ -506,12 +552,13 @@ function makeCity() {
   }
   const J = LEAD(sc), cam = newCam();
   const jy = -4 + Math.sqrt(144 - 0.25);
+  const jCity = new Actor({ card: J, id: 'J', x: 0, z: 3.5, floor: jy, dir: 1, back: true, script: () => ({ act: 'sit', actRate: 20, actLife: 0.6 }) });
   return function (t) {
     const tAnd = wt(11, 'And') - 0.1;
     zflag.userData.update(NOW);
     cam3(cam, t, [[0, { p: [0.6, jy + 1.35, 6.4], l: [0.1, jy + 1.05, 0] }], [0.35, { p: [0.6, jy + 1.35, 6.4], l: [0.1, jy + 1.05, 0] }], [tAnd, { p: [0, jy + 6, 12], l: [0, 1, -48] }],
       [tAnd, { p: [3.5, jy + 3, 9.5], l: [0, 1, -50] }, 'cut']]);
-    J.sketch({ ...jonahFrame(t, [[0, 'sit']], { dir: 1, life: 0.6 }), back: true }).at(0, jy, 3.5, cam);
+    jCity.draw(t, cam);
     return { scene: sc, camera: cam };
   };
 }
