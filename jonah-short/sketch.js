@@ -16,7 +16,7 @@ const D2R = PI / 180;
 // smooth deterministic noise for the hand-drawn "boil" (redrawn every frame = animated on ones)
 function hnoise(a, b) { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); }
 function wobblePath(g, pts, amp, seed) {
-  const f = Math.floor(NOW * 30);
+  const f = 0;               // measured: the reference's lines do not boil; keep a fixed hand-drawn irregularity
   g.beginPath();
   for (let i = 0; i < pts.length; i++) {
     const [x, y] = pts[i];
@@ -28,7 +28,7 @@ function wobblePath(g, pts, amp, seed) {
     }
   }
 }
-function inkLine(g, pts, w, seed, col = SK.ink) { wobblePath(g, pts, 2.2, seed); g.lineWidth = w; g.strokeStyle = col; g.lineCap = 'round'; g.lineJoin = 'round'; g.stroke(); }
+function inkLine(g, pts, w, seed, col = SK.ink) { wobblePath(g, pts, 1.4, seed); g.lineWidth = w; g.strokeStyle = col; g.lineCap = 'round'; g.lineJoin = 'round'; g.stroke(); }
 
 // ---- poses: angles in degrees. Arms/legs measured from straight down, + = toward the facing direction.
 // arm: [shoulder, elbow-relative]; leg: [hip, knee-relative (negative = shin folds back)]
@@ -36,8 +36,8 @@ const POSES = {
   idle:    { lean: 2, aF: [12, -8], aB: [-12, -8], lF: [6, -4], lB: [-6, -4] },
   skid:    { lean: -14, aF: [75, 15], aB: [-85, -15], lF: [38, 0], lB: [-12, -55] },
   crouch:  { lean: 22, aF: [-35, -25], aB: [-45, -20], lF: [62, -115], lB: [50, -110] },
-  rise:    { lean: 6, aF: [150, 20], aB: [125, 35], lF: [62, -105], lB: [28, -85], air: true },
-  fall:    { lean: -6, aF: [165, 25], aB: [-160, -20], lF: [12, -25], lB: [-18, -40], air: true },
+  rise:    { lean: 6, aF: [150, 20], aB: [125, 35], lF: [62, -105], lB: [28, -85], air: 1 },
+  fall:    { lean: -6, aF: [165, 25], aB: [-160, -20], lF: [12, -25], lB: [-18, -40], air: 1 },
   land:    { lean: 20, aF: [55, 25], aB: [-50, -25], lF: [50, -100], lB: [40, -95] },
   kneel:   { lean: 6, aF: [38, 110], aB: [32, 115], lF: [88, -92], lB: [-18, -112] },
   pray:    { lean: 10, tilt: 14, aF: [34, 118], aB: [30, 122], lF: [88, -92], lB: [-18, -112] },
@@ -48,7 +48,7 @@ const POSES = {
   pay:     { lean: 6, aF: [78, 20], aB: [-8, -8], lF: [6, -4], lB: [-8, -6] },
   fury:    { lean: -10, tilt: -10, aF: [150, 55], aB: [-150, -55], lF: [10, -8], lB: [-12, -8] },
   stomp:   { lean: 12, aF: [135, 60], aB: [-135, -60], lF: [70, -95], lB: [-6, -6] },
-  sink:    { lean: -10, aF: [170, 30], aB: [-165, -35], lF: [8, -30], lB: [-16, -45], air: true },
+  sink:    { lean: -10, aF: [170, 30], aB: [-165, -35], lF: [8, -30], lB: [-16, -45], air: 1 },
   sprawl:  { lean: 70, aF: [100, 10], aB: [-60, -20], lF: [-20, -40], lB: [-50, -30] },
 };
 function mixPose(a, b, k) {
@@ -82,7 +82,8 @@ function sketchman(g, o) {
   const lF = limb([0, 0], ...P.lF, SK.thigh, SK.shin), lB = limb([0, 0], ...P.lB, SK.thigh, SK.shin);
   // feet stay planted: the hip sits as high as the longer leg reaches (this gives the natural bob)
   const reach = Math.max(lF[1][1], lB[1][1]);
-  const hipY = -(P.air ? SK.hip * H : reach) - d.air * H;
+  const airK = clamp(+(P.air || 0));
+  const hipY = -lerp(reach, SK.hip * H, airK) - d.air * H;
   const lean = ang(P.lean + (d.lean || 0)), tilt = ang((P.tilt || 0));
   const neck = [dir * Math.sin(lean) * SK.torso * H, -Math.cos(lean) * SK.torso * H + br];
   const shoulder = [neck[0] * 0.93, neck[1] * 0.93];
@@ -119,9 +120,10 @@ function sketchman(g, o) {
   // head-wrap tails: follow-through (trail opposite to motion, droop with gravity, streak at speed)
   const [vx, vy] = d.vel, sp = Math.hypot(vx, vy);
   const anchor = [hc[0] - dir * R * 0.85, hc[1] - R * 0.35];
-  let tx = -dir * 0.45 - vx * dir * 0 - vx * 0.32, ty = 1 - (-vy) * 0.0 + vy * -0.28;
-  const tn = Math.hypot(tx, ty) || 1; tx /= tn; ty /= tn;
-  const wave = Math.sin(NOW * 13) * (0.15 + Math.min(1, sp / 5) * 0.25);
+  let tx, ty;
+  if (d.tailA !== undefined) { tx = Math.cos(d.tailA); ty = Math.sin(d.tailA); }
+  else { const tg = tailTarget(vx, vy, dir); tx = Math.cos(tg); ty = Math.sin(tg); }
+  const wave = Math.sin(NOW * 9) * (0.06 + Math.min(1, sp / 5) * 0.18);
   [[1, 0.95], [0.75, 0.75]].forEach(([len, k], i) => {
     const L = (0.12 + 0.05 * Math.min(1, sp / 4)) * H * len;
     const a = Math.atan2(ty, tx) + (i ? 0.35 : -0.15) + wave * (i ? -1 : 1);
@@ -190,3 +192,54 @@ function jumpState(t, t0, v0 = 5.6) {
   if (l < 0.27) return { air: 0, vy: 0, pose: mixPose(POSES.land, POSES.idle, (l - 0.17) / 0.1), land: l };
   return { air: 0, vy: 0, pose: null, land: l };
 }
+
+
+// ================= fluid motion layer (measured: no held frames, pose changes ~0.4 s, max/median step <= ~2.5)
+const smooth5 = k => { k = clamp(k); return k * k * k * (k * (6 * k - 15) + 10); };
+const poseOf = (p, t) => typeof p === 'function' ? p(t) : typeof p === 'string' ? POSES[p] : p;
+// keys: [[time, pose | name | fn(t), transition seconds (default 0.4)], ...]; each blend finishes at its key time
+function poseTrack(keys, t) {
+  let cur = poseOf(keys[0][1], t);
+  for (let j = 1; j < keys.length; j++) {
+    const tr = keys[j][2] ?? 0.4, k = smooth5((t - (keys[j][0] - tr)) / tr);
+    if (k > 0) cur = mixPose(cur, poseOf(keys[j][1], t), k);
+  }
+  return cur;
+}
+// continuous life on top of any pose (breathing, weight shift, arm drift): ~1-1.4 %/frame of drawing change
+function alive(p, t, amp = 1) {
+  const q = JSON.parse(JSON.stringify(p)), sn = (f, ph) => Math.sin(t * f + ph);
+  q.lean = (q.lean || 0) + 1.6 * amp * sn(2.1, 0.3);
+  q.tilt = (q.tilt || 0) + 2.2 * amp * sn(1.5, 1.1);
+  q.aF = [q.aF[0] + 4 * amp * sn(1.9, 2.0), q.aF[1] + 3 * amp * sn(2.6, 0.4)];
+  q.aB = [q.aB[0] - 4 * amp * sn(1.7, 2.7), q.aB[1] - 3 * amp * sn(2.3, 1.7)];
+  q.lF = [q.lF[0] + 1.2 * amp * sn(1.2, 0.9), q.lF[1]]; q.lB = [q.lB[0] + 1.2 * amp * sn(1.2, 0.9), q.lB[1]];
+  return q;
+}
+// overlapping action: arms trail the body by 2 frames, the head tilt by ~1
+function jonahPose(keys, t, life = 1) {
+  const body = alive(poseTrack(keys, t), t, life);
+  const arms = alive(poseTrack(keys, t - 0.067), t - 0.067, life);
+  const head = alive(poseTrack(keys, t - 0.033), t - 0.033, life);
+  body.aF = arms.aF; body.aB = arms.aB; body.tilt = head.tilt;
+  return body;
+}
+// tails: target angle from velocity (vel = [horizontal, upward] in H/s), then a damped spring (lag, overshoot, settle)
+function tailTarget(vx, vy, dir) { const tx = -dir * 0.45 - 0.32 * vx, ty = 1 + 0.28 * vy; return Math.atan2(ty, tx); }
+function tailSpring(t, velFn, dir) {
+  const w = 13, z = 0.35, dt = 1 / 60; let tt = t - 0.8;
+  let v0 = velFn(tt), th = tailTarget(v0[0], v0[1], dir), om = 0;
+  for (; tt < t; tt += dt) {
+    const v = velFn(tt); let tg = tailTarget(v[0], v[1], dir);
+    while (tg - th > PI) tg -= TAU; while (tg - th < -PI) tg += TAU;
+    om += (-w * w * (th - tg) - 2 * z * w * om) * dt; th += om * dt;
+  }
+  return th;
+}
+// convenience: everything the card needs for one frame
+function jonahFrame(t, keys, o = {}) {
+  const vel = o.vel ? o.vel(t) : [0, 0], dir = o.dir ?? 1;
+  return { ...o, dir, pose: jonahPose(keys, t, o.life ?? 1), vel, tailA: tailSpring(t, o.vel || (() => [0, 0]), dir) };
+}
+// airborne pose that blends continuously with vertical speed (rising -> falling)
+const airPose = vy => mixPose(POSES.rise, POSES.fall, smooth5((2 - vy) / 4));

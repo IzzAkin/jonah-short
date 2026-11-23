@@ -41,3 +41,21 @@
 - **Beach:** spat out on a ballistic arc at the measured gravity with a full spin, then the landing dip with dust, then dazed on his knees.
 - **Nineveh gate:** a bouncing walk cycle.
 - **Hill:** a stomp-hop on "furious", with gravity, landing dust and steam.
+
+## Fluidity check (Nov 23)
+The first version of the sketch rig looked busy rather than fluid. Measured at the reference's scale (147 px figure, 180×210 crop, ink pixels changing per frame):
+
+| | Reference | Sketch v1 | Sketch v2 (now) |
+|---|---|---|---|
+| Line jitter at rest | none; the 1.4 % idle figure equals the static-scenery noise floor (1.43 %) | random re-drawn every frame | none: fixed hand-drawn irregularity |
+| Idle motion | near-still | jitter only | gentle continuous sway, 0.12 %/frame |
+| Pose change | ~4.5 %/frame over ~14 frames | snapped in 1–5 frames | 4–5 %/frame over ~14 frames |
+| Biggest step / typical step | 1.6–3.9× | 5.4–10× | 2.4× |
+| Frozen frames while moving | 0–2 | n/a | 0 |
+
+**What makes v2 fluid** (`sketch.js`: `poseTrack`, `alive`, `jonahPose`, `tailSpring`)
+- **Every pose change is a timeline key.** It blends with a quintic ease that has continuous speed: about 0.4 s by default, 0.08–0.25 s for skids and landings.
+- **Airborne vs grounded is a number, not a switch,** so the hips never jump.
+- **Overlapping action:** the arms trail the body by 2 frames and the head by 1.
+- **Head-wrap tails** run on a damped spring (ω = 13 rad/s, ζ = 0.35), so they lag, overshoot and settle.
+- **The walk phase comes from distance travelled,** so the feet don't slide.
