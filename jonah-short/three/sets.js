@@ -82,7 +82,7 @@ function makeFish() {
   return {
     shot1(t) {
       tick(t); tally.forEach(m => (m.visible = false));
-      cam3(cam, t, [[0, { p: [0.14, 1.38, 1.25], l: [0, 1.36, 0] }], [0.7, { p: [0.14, 1.38, 1.25], l: [0, 1.36, 0] }], [3.9, { p: [0, 1.7, 6.6], l: [0, 1.25, -2] }]]);
+      cam3(cam, t, [[0, { p: [0.35, 1.5, 3.7], l: [0, 1.1, 0] }], [0.7, { p: [0.35, 1.5, 3.7], l: [0, 1.1, 0] }], [3.9, { p: [0.2, 1.85, 7.0], l: [0, 1.05, -2] }]]);
       jFear.draw(t, cam);
       return { scene: sc, camera: cam };
     },
@@ -215,7 +215,7 @@ function makeShip() {
   room.position.set(0, 2.2, -1); room.receiveShadow = true; bd.add(room);
   [-1.7, 1.7].forEach(x => cyl(bd, 0.12, 0.14, 4.4, '#6b4428', [x, 2.2, -0.2]));
   const hamGeo = new T3.PlaneGeometry(2.7, 0.85, 24, 4); const hp = hamGeo.attributes.position;
-  for (let i = 0; i < hp.count; i++) { const x = hp.getX(i), z = hp.getY(i); hp.setXYZ(i, x, -0.42 * (1 - (x / 1.35) ** 2) - 0.08 * (z / 0.425) ** 2, z); }
+  for (let i = 0; i < hp.count; i++) { const x = hp.getX(i), z = hp.getY(i); hp.setXYZ(i, x, -0.22 * (1 - (x / 1.35) ** 2) - 0.1 * (z / 0.425) ** 2, z); }
   hamGeo.computeVertexNormals();
   const ham = new T3.Group(); ham.position.set(0, 2.32, -0.2); bd.add(ham);
   const hamCloth = new T3.Mesh(hamGeo, mat('#d8c7a2', { map: texStripes('#d8c7a2', '#a8865a', 12), side: T3.DoubleSide })); hamCloth.castShadow = hamCloth.receiveShadow = true; ham.add(hamCloth);
@@ -263,7 +263,7 @@ function makeShip() {
       cam3(bcam, tb, [[0.3, { p: [0.3, 3.4, 5.0], l: [0, 1.75, -0.2] }], [2.0, { p: [0.3, 3.2, 4.3], l: [0, 1.75, -0.2] }]]);
       const sw = Math.sin(NOW * 1.6) * 0.04; ham.position.x = sw; ham.rotation.x = Math.sin(NOW * 1.6) * 0.05;
       lantern.position.x = 1.0 + Math.sin(NOW * 1.6) * 0.06;
-      Jl.draw(g => sketchman(g, { x: 900, y: 640, s: 1.53 * 1.69, rot: -PI / 2, dir: 1, pose: alive({ ...POSES.idle, air: 1, aF: [20, 30], aB: [-25, -20] }, tb, 0.8), face: { eyes: 'closed', mouth: 'o' } })).at(sw - 0.05, 1.27, -0.15, bcam);
+      Jl.draw(g => sketchman(g, { x: 900, y: 640, s: 1.53 * 1.69, rot: -PI / 2, dir: 1, pose: alive({ lean: 0, tilt: 8, air: 1, aF: [28, 95], aB: [-20, -30], lF: [14, -22], lB: [-6, -40] }, tb, 0.6), face: { eyes: 'closed', mouth: 'o' } })).at(sw - 0.05, 1.47, 0.3, bcam);
       const head = toScreen([-0.95 + sw, 2.15, -0.2], bcam);
       return { scene: bd, camera: bcam, post: g => {
         for (let i = 0; i < 3; i++) { const p = mod(NOW * 0.7 + i / 3, 1); g.save(); g.globalAlpha = Math.sin(p * PI); g.font = `900 ${50 + p * 50}px Montserrat`; g.textAlign = 'center'; g.lineWidth = 9; g.strokeStyle = INK; g.strokeText('Z', head[0] + 40 + p * 90, head[1] - 60 - p * 280); g.fillStyle = '#fff4dc'; g.fillText('Z', head[0] + 40 + p * 90, head[1] - 60 - p * 280); g.restore(); }
@@ -575,11 +575,12 @@ function makeCity() {
   }
   const J = LEAD(sc), cam = newCam();
   const jy = -4 + Math.sqrt(144 - 0.25);
-  const jCity = new Actor({ card: J, id: 'J', x: 0, z: 3.5, floor: jy, dir: 1, back: true, script: () => ({ act: 'sit', actRate: 20, actLife: 0.6 }) });
+  sph(sc, 0.55, '#8d7a64', [-0.3, jy + 0.12, 3.38], { s: [1.25, 1.0, 0.9], map: texSpeckle('#8d7a64', [2, 2], 1200, 0.25, 81), ol: 0.03 });
+  const jCity = new Actor({ card: J, id: 'J', x: -0.3, z: 3.5, floor: jy, dir: 1, back: true, script: () => ({ act: 'perch', actRate: 20, actLife: 0.6 }) });
   return function (t) {
     const tAnd = wt(11, 'And') - 0.1;
     zflag.userData.update(NOW);
-    cam3(cam, t, [[0, { p: [0.6, jy + 1.35, 6.4], l: [0.1, jy + 1.05, 0] }], [0.35, { p: [0.6, jy + 1.35, 6.4], l: [0.1, jy + 1.05, 0] }], [tAnd, { p: [0, jy + 6, 12], l: [0, 1, -48] }],
+    cam3(cam, t, [[0, { p: [0.5, jy + 1.75, 7.4], l: [-0.2, jy + 1.0, 0] }], [0.35, { p: [0.5, jy + 1.75, 7.4], l: [-0.2, jy + 1.0, 0] }], [tAnd, { p: [0, jy + 6, 12], l: [0, 1, -48] }],
       [tAnd, { p: [3.5, jy + 3, 9.5], l: [0, 1, -50] }, 'cut']]);
     jCity.draw(t, cam);
     return { scene: sc, camera: cam };

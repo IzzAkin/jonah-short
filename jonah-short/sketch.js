@@ -47,6 +47,18 @@ function wobblePath(g, pts, amp, seed) {
     }
   }
 }
+function limbStroke(g, pts, w0, w1, col = SK.ink) {
+  const [a, b, c] = pts.length === 3 ? pts : [pts[0], [(pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2], pts[1]];
+  const ctl = [2 * b[0] - (a[0] + c[0]) / 2, 2 * b[1] - (a[1] + c[1]) / 2], N = 14, L = [], Rr = [];
+  for (let i = 0; i <= N; i++) {
+    const t = i / N, u = 1 - t, x = u * u * a[0] + 2 * u * t * ctl[0] + t * t * c[0], y = u * u * a[1] + 2 * u * t * ctl[1] + t * t * c[1];
+    const dx = 2 * u * (ctl[0] - a[0]) + 2 * t * (c[0] - ctl[0]), dy = 2 * u * (ctl[1] - a[1]) + 2 * t * (c[1] - ctl[1]), n = Math.hypot(dx, dy) || 1;
+    const w = lerp(w0, w1, t) / 2 * (1 + 0.08 * Math.sin(t * PI));
+    L.push([x - dy / n * w, y + dx / n * w]); Rr.push([x + dy / n * w, y - dx / n * w]);
+  }
+  g.beginPath(); g.moveTo(L[0][0], L[0][1]); L.forEach(p => g.lineTo(p[0], p[1])); for (let i = Rr.length - 1; i >= 0; i--) g.lineTo(Rr[i][0], Rr[i][1]); g.closePath();
+  g.fillStyle = col; g.fill(); circle(g, a[0], a[1], w0 / 2); g.fill(); circle(g, c[0], c[1], w1 / 2); g.fill();
+}
 function inkLine(g, pts, w, seed, col = SK.ink) { wobblePath(g, pts, 1.4, seed); g.lineWidth = w; g.strokeStyle = col; g.lineCap = 'round'; g.lineJoin = 'round'; g.stroke(); }
 
 // ---- poses: angles in degrees. Arms/legs measured from straight down, + = toward the facing direction.
@@ -75,6 +87,7 @@ const POSES = {
   cower:   { lean: 18, tilt: 12, aF: [28, 125], aB: [24, 128], lF: [34, -50], lB: [20, -45] },
   sitBow:  { lean: 22, tilt: 18, aF: [26, 105], aB: [24, 108], lF: [86, -84], lB: [80, -80] },
   stare:   { lean: -6, tilt: -4, aF: [8, -4], aB: [-8, -4], lF: [8, -4], lB: [-8, -6] },
+  perch:   { lean: 4, tilt: 6, aF: [24, 38], aB: [-24, -38], lF: [16, -4], lB: [-14, 4], air: 1 },
   wave:    { lean: 2, aF: [150, -40], aB: [-10, -10], lF: [6, -4], lB: [-6, -4] },
 };
 function mixPose(a, b, k) {
@@ -120,9 +133,10 @@ function sketchman(g, o) {
   const R = SK.headR * H;
 
   g.save(); g.translate(d.x, d.y + hipY * d.s); g.scale(d.s, d.s); if (d.rot) g.rotate(d.rot);
-  const back = (pts, seed) => inkLine(g, pts, SK.line, seed);
+  const back = (pts, seed) => limbStroke(g, pts, SK.line * 1.18, SK.line * 0.78);
+  const hand = p => { ell(g, p[0], p[1], 6.2, 5.4); fill(g, SK.ink); };
   // back arm, back leg
-  back([shoulder, aB[0], aB[1]], 1);
+  back([shoulder, aB[0], aB[1]], 1); hand(aB[1]);
   back([[0, 0], lB[0], lB[1]], 2); foot(lB, 22);
   // tunic over the thighs (flares toward the knees, follows the legs)
   const waist = [neck[0] * 0.22, neck[1] * 0.22];
@@ -142,11 +156,12 @@ function sketchman(g, o) {
   if (LK.trim) { g.fillStyle = LK.trim; g.fillRect(-7, -0.5 * H, 14, H); g.fillRect(-200, kneeMid[1] - 2, 400, 12); }
   if (typeof CHAR_LIGHT !== 'undefined') { const sd = lightDir()[0] <= 0 ? 1 : -1, gr = g.createLinearGradient(-sd * 80, 0, sd * 80, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.55, 'rgba(0,0,0,0)'); gr.addColorStop(1, CHAR_LIGHT.robeShade); g.fillStyle = gr; g.fillRect(-200, -200, 400, 400); }
   g.restore();
-  wobblePath(g, [...tun, tun[0]], 2.4, 30); g.lineWidth = SK.line * 0.9; g.strokeStyle = SK.ink; g.lineJoin = 'round'; g.stroke();
+  [[0.3, 1], [0.7, 3]].forEach(([k, i]) => { const top = [waist[0] + (k - 0.5) * wl * 2, waist[1] + 4]; inkLine(g, [top, [lerp(top[0], tun[i][0], 0.55), lerp(top[1], tun[i][1], 0.55)], [lerp(top[0], tun[i][0], 0.85), lerp(top[1], tun[i][1], 0.85)]], 2.2, 31 + i, 'rgba(35,29,27,0.45)'); });
+  wobblePath(g, [...tun, tun[0]], 1.6, 30); g.lineWidth = SK.line * 0.78; g.strokeStyle = SK.ink; g.lineJoin = 'round'; g.stroke();
   // belt knot at the waist
   if (LK.belt) { circle(g, waist[0], waist[1], 7); fill(g, LK.belt); g.lineWidth = 4; g.strokeStyle = SK.ink; g.stroke(); }
   // torso line
-  back([waist, [neck[0] * 0.6, neck[1] * 0.6], neck], 4);
+  limbStroke(g, [waist, [neck[0] * 0.6, neck[1] * 0.6], neck], SK.line * 1.25, SK.line * 1.0);
   // head-wrap tails: follow-through (trail opposite to motion, droop with gravity, streak at speed)
   const [vx, vy] = d.vel, sp = Math.hypot(vx, vy);
   const anchor = [hc[0] - dir * R * 0.85, hc[1] - R * 0.35];
@@ -202,7 +217,7 @@ function sketchman(g, o) {
       if (blink || f.eyes === 'closed') inkLine(g, [[x - 5, ey], [x + 5, ey + (f.eyes === 'closed' ? 2 : 0)]], 3.5, 70 + i);
       else if (f.eyes === 'wide') { circle(g, x, ey, 6.5); fill(g, '#fff'); g.lineWidth = 2.5; g.strokeStyle = SK.ink; g.stroke(); circle(g, x + dir * 1.5, ey, 2.8); fill(g, SK.ink); }
       else if (f.eyes === 'angry') { circle(g, x, ey + 1, 3.2); fill(g, SK.ink); }
-      else { circle(g, x, ey, 3.2); fill(g, SK.ink); }
+      else { circle(g, x, ey, 3.4); fill(g, SK.ink); circle(g, x - 1, ey - 1.2, 1.1); fill(g, '#fff'); }
     });
     const br2 = f.brows || 'soft';
     ex.forEach((x, i) => { const side = i ? 1 : -1, inner = side * -dir; const dy = br2 === 'angry' ? [-14, -8] : br2 === 'worried' ? [-9, -15] : br2 === 'raised' ? [-17, -17] : [-13, -13];
@@ -218,13 +233,13 @@ function sketchman(g, o) {
   }
   if (d.seaweed) [[-0.75, -1], [-0.2, -1], [0.45, 1]].forEach(([ox, side], i) => { const x0 = hc[0] + ox * R, y0 = hc[1] - R * 0.95; inkLine(g, [[x0, y0], [x0 + side * R * 0.35, y0 - R * 0.12], [x0 + side * R * 0.55, y0 + R * 0.35 + i * 6]], 5, 100 + i, '#4a9a3c'); });
   // front arm last; hands are just the line ends
-  back([shoulder, aF[0], aF[1]], 5);
+  back([shoulder, aF[0], aF[1]], 5); hand(aF[1]);
   const M = g.getTransform(), mp = p => { const q = M.transformPoint(new DOMPoint(p[0], p[1])); return [q.x, q.y]; };
   const J = { handF: mp(aF[1]), handB: mp(aB[1]), elbowF: mp(aF[0]), elbowB: mp(aB[0]), footF: mp(lF[1]), footB: mp(lB[1]), kneeF: mp(lF[0]), kneeB: mp(lB[0]), shoulder: mp(shoulder), hip: mp([0, 0]), head: mp(hc), headR: R * Math.hypot(M.a, M.b) };
   g.restore();
   return J;
 
-  function foot(l, seed) { const [k, f] = l; inkLine(g, [[f[0] - dir * 3, f[1]], [f[0] + dir * 15, f[1] + 1]], SK.line, seed); }
+  function foot(l, seed) { const [k, f] = l; g.beginPath(); g.moveTo(f[0] - dir * 6, f[1] - 5); g.quadraticCurveTo(f[0] + dir * 6, f[1] - 9, f[0] + dir * 19, f[1] - 1); g.quadraticCurveTo(f[0] + dir * 21, f[1] + 4, f[0] + dir * 12, f[1] + 4); g.lineTo(f[0] - dir * 6, f[1] + 4); g.quadraticCurveTo(f[0] - dir * 10, f[1], f[0] - dir * 6, f[1] - 5); g.fillStyle = SK.ink; g.fill(); }
 }
 
 // dust puffs on landings and skids (age 0..1)

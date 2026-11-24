@@ -1,0 +1,114 @@
+{
+ "requests": [
+  {
+   "index": 1,
+   "params": {
+    "model": "seed_audio",
+    "prompt": "A man spent three days inside a fish, and he got there by running from God.",
+    "voice_id": "bd072316-f77c-588b-b6e5-e46b9b03d008",
+    "voice_type": "preset",
+    "use_unlim": false
+   }
+  },
+  {
+   "index": 2,
+   "params": {
+    "model": "seed_audio",
+    "prompt": "God told Jonah to go to Nineveh, the enemy's great city, and warn it. Jonah bought a ticket going the opposite way.",
+    "voice_id": "bd072316-f77c-588b-b6e5-e46b9b03d008",
+    "voice_type": "preset",
+    "use_unlim": false
+   }
+  },
+  {
+   "index": 3,
+   "params": {
+    "model": "seed_audio",
+    "prompt": "Out at sea, a storm hit so hard the sailors each cried out to their own god. Jonah was asleep below deck.",
+    "voice_id": "bd072316-f77c-588b-b6e5-e46b9b03d008",
+    "voice_type": "preset",
+    "use_unlim": false
+   }
+  },
+  {
+   "index": 4,
+   "params": {
+    "model": "seed_audio",
+    "prompt": "They cast lots, and the lot fell on Jonah. \"Throw me into the sea,\" he said, \"and it will calm.\"",
+    "voice_id": "bd072316-f77c-588b-b6e5-e46b9b03d008",
+    "voice_type": "preset",
+    "use_unlim": false
+   }
+  },
+  {
+   "index": 5,
+   "params": {
+    "model": "seed_audio",
+    "prompt": "They did. The sea went still. And a great fish swallowed him.",
+    "voice_id": "bd072316-f77c-588b-b6e5-e46b9b03d008",
+    "voice_type": "preset",
+    "use_unlim": false
+   }
+  },
+  {
+   "index": 6,
+   "params": {
+    "model": "seed_audio",
+    "prompt": "For three days and three nights, Jonah prayed in the dark.",
+    "voice_id": "bd072316-f77c-588b-b6e5-e46b9b03d008",
+    "voice_type": "preset",
+    "use_unlim": false
+   }
+  },
+  {
+   "index": 7,
+   "params": {
+    "model": "seed_audio",
+    "prompt": "Then the fish spat him out onto dry land.",
+    "voice_id": "bd072316-f77c-588b-b6e5-e46b9b03d008",
+    "voice_type": "preset",
+    "use_unlim": false
+   }
+  },
+  {
+   "index": 8,
+   "params": {
+    "model": "seed_audio",
+    "prompt": "So he walked into Nineveh and said one sentence: \"Forty days, and Nineveh will be overthrown.\"",
+    "voice_id": "bd072316-f77c-588b-b6e5-e46b9b03d008",
+    "voice_type": "preset",
+    "use_unlim": false
+   }
+  },
+  {
+   "index": 9,
+   "params": {
+    "model": "seed_audio",
+    "prompt": "The whole city believed. Even the king sat down in ashes. And God spared them. Here's the twist.",
+    "voice_id": "bd072316-f77c-588b-b6e5-e46b9b03d008",
+    "voice_type": "preset",
+    "use_unlim": false
+   }
+  },
+  {
+   "index": 10,
+   "params": {
+    "model": "seed_audio",
+    "prompt": "Jonah was furious. He'd run away because he knew God was merciful.",
+    "voice_id": "bd072316-f77c-588b-b6e5-e46b9b03d008",
+    "voice_type": "preset",
+    "use_unlim": false
+   }
+  },
+  {
+   "index": 11,
+   "params": {
+    "model": "seed_audio",
+    "prompt": "So God asked him, \"Shouldn't I care about a city of a hundred and twenty thousand people?\" And the book ends on that question.",
+    "voice_id": "bd072316-f77c-588b-b6e5-e46b9b03d008",
+    "voice_type": "preset",
+    "use_unlim": false
+   }
+  }
+ ]
+}
