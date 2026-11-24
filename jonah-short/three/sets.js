@@ -51,6 +51,19 @@ function makeFish() {
     m.scale.set(1, 1.28, 1); m.position.set(0, 0, 3 - i * 2.2); m.castShadow = m.receiveShadow = true; outline(m, 0.035); sc.add(m);
   }
   water(sc, 9, 40, '#1c4a54', { y: 0.03, z: -10, amp: 0.02, len: 0.9, sp: 1.6, ei: 0.45 });
+  // swallowed junk: a muck bank Jonah kneels on, plus planks, a barrel, a crate, bones, an old boot, bottles and weed
+  sph(sc, 1.5, '#8a7650', [0, -1.25, 0.1], { s: [1.3, 0.85, 1.0], map: texSpeckle('#8a7650', [3, 3], 2500, 0.3, 61), emissive: '#4a3c28', ei: 0.9 });
+  const dr = rng(61);
+  [[-1.9, -1.2, 0.5], [1.8, -0.4, -0.4], [-1.2, -3.6, 1.2], [2.2, -5.5, 0.2], [-2.4, -7.8, -0.6]].forEach(([x, z, ry], i) =>
+    box(sc, 1.3 + dr() * 0.6, 0.08, 0.24, '#7a5634', [x, 0.06 + dr() * 0.05, z], { r: [dr() * 0.2, ry, dr() * 0.15], map: texPlanks('#7a5634', 'rgba(30,15,5,0.6)', [1, 0.2]), ol: 0.015 }));
+  const bar = new T3.Group(); cyl(bar, 0.32, 0.32, 0.85, '#8d5a33', [0, 0, 0], { map: texPlanks('#8d5a33', 'rgba(40,20,10,0.6)', [2, 1]), ol: 0.02 }); [-0.28, 0.28].forEach(y => cyl(bar, 0.34, 0.34, 0.06, '#5b5f66', [0, y, 0], { ol: false }));
+  bar.position.set(1.9, 0.18, -1.6); bar.rotation.set(PI / 2, 0.6, 0.15); sc.add(bar);
+  box(sc, 0.6, 0.6, 0.6, '#9a6a40', [-2.1, 0.12, -2.4], { r: [0.25, 0.5, 0.1], map: texPlanks('#9a6a40', 'rgba(40,20,10,0.6)', [1, 1]) });
+  for (let i = 0; i < 4; i++) { const x = -0.9 + i * 0.55, z = -1.5 - dr() * 0.6; cyl(sc, 0.035, 0.035, 0.7, '#ece1c8', [x, 0.08, z], { r: [PI / 2, dr() * 2, 0], ol: 0.01 }); }   // fish bones
+  sph(sc, 0.13, '#ece1c8', [-0.6, 0.1, -1.3], { ol: 0.01 });
+  const boot = new T3.Group(); box(boot, 0.18, 0.36, 0.2, '#3e2c22', [0, 0.18, 0]); box(boot, 0.34, 0.12, 0.2, '#3e2c22', [0.08, 0.06, 0]); boot.position.set(1.15, 0.0, 0.9); boot.rotation.set(0.3, 0.8, 1.2); sc.add(boot);
+  [[1.5, 0.6, '#3f8a5a'], [-1.4, 0.4, '#5a8f9a'], [0.7, -2.6, '#3f8a5a']].forEach(([x, z, c]) => { cyl(sc, 0.06, 0.08, 0.32, c, [x, 0.12, z], { r: [PI / 2 - 0.2, 0, 0.5], ol: 0.012, emissive: c, ei: 0.25 }); });
+  for (let i = 0; i < 9; i++) { const x = -2.6 + dr() * 5.2, z = 0.8 - dr() * 9; const k = box(sc, 0.06, 0.5 + dr() * 0.5, 0.02, '#3f7a4a', [x, 0.2, z], { r: [0, dr() * 3, (dr() - 0.5) * 0.9], ol: 0.01 }); }
   const tally = [];
   for (let i = 0; i < 3; i++) { const m = box(sc, 0.05, 0.42, 0.05, '#f6ecd6', [-2.55 + i * 0.13, 2.1 - i * 0.05, 1.05], { r: [0, 0, 0.35], ol: 0.015 }); m.visible = false; tally.push(m); }
   shaft(sc, [0.5, 3.6, 0.3], 8, 0.25, 1.4, '#8ff5e0', 0.32, [0, 0, 0.1]);
@@ -178,7 +191,11 @@ function makeShip() {
   cyl(ship, 0.2, 0.26, 14, '#6b4428', [4.4, 7, -1.9]);
   cyl(ship, 0.09, 0.09, 7, '#6b4428', [4.4, 9.4, -1.7], { r: [0, 0, PI / 2] });
   const sail = extrude(ship, [[-3, 0], [3, 0], [2.6, -3.2], [1.6, -2.7], [0.8, -3.6], [-0.4, -2.9], [-1.4, -3.4], [-2.8, -2.6]], 0.06, '#cfc3a6', [4.4, 9.3, -1.55], { ol: 0.03, side: T3.DoubleSide });
-  [[-6, 0], [14, 0]].forEach(([x]) => cyl(ship, 0.025, 0.025, 11, '#3a2a20', [(x + 4.4) / 2, 5.4, -2.6], { r: [0, 0, Math.atan2(4.4 - x, 9.5)], ol: false }));
+  const top = [4.4, 13.6, -1.9];
+  rope(ship, top, [-8.6, 1.1, -1.9]); rope(ship, top, [17.8, 1.1, -1.9]);                     // fore and back stays to bow and stern
+  [-1.2, 0, 1.2].forEach(dx => rope(ship, [4.4, 12.2, -1.9], [4.4 + dx, 1.1, -3.4], 0.022));  // shrouds down to the rail
+  rope(ship, [0.95, 9.4, -1.7], [-2.6, 1.1, -3.4], 0.022); rope(ship, [7.85, 9.4, -1.7], [11.4, 1.1, -3.4], 0.022);   // braces from the yard ends
+  [[-8.6, 1.1, -1.9], [17.8, 1.1, -1.9], [-2.6, 1.1, -3.4], [11.4, 1.1, -3.4]].forEach(p => sph(ship, 0.08, '#6b4428', p));   // belaying blocks
   barrel(ship, [8.6, 0, -2.4]); barrel(ship, [9.5, 0, -2.8]); barrel(ship, [-3.5, 0, -2.6]);
   const lotBarrel = barrel(ship, [3, 0, 0]);
   // hatch with warm light inside
@@ -197,8 +214,14 @@ function makeShip() {
   const room = new T3.Mesh(new T3.BoxGeometry(9, 4.4, 9), mat('#5a3a24', { map: texPlanks('#5a3a24', 'rgba(20,10,5,0.6)', [3, 2]), side: T3.BackSide }));
   room.position.set(0, 2.2, -1); room.receiveShadow = true; bd.add(room);
   [-1.7, 1.7].forEach(x => cyl(bd, 0.12, 0.14, 4.4, '#6b4428', [x, 2.2, -0.2]));
-  const ham = new T3.Mesh(new T3.CylinderGeometry(1.84, 1.84, 0.95, 32, 1, true, -PI / 4, PI / 2), mat('#d8c7a2', { map: texStripes('#d8c7a2', '#b9a47e', 14), side: T3.DoubleSide }));
-  ham.rotation.x = PI / 2; ham.rotation.y = PI / 2; ham.rotation.z = 0; ham.position.set(0, 2.35, -0.2); ham.castShadow = ham.receiveShadow = true; outline(ham, 0.02); bd.add(ham);
+  const hamGeo = new T3.PlaneGeometry(2.7, 0.85, 24, 4); const hp = hamGeo.attributes.position;
+  for (let i = 0; i < hp.count; i++) { const x = hp.getX(i), z = hp.getY(i); hp.setXYZ(i, x, -0.42 * (1 - (x / 1.35) ** 2) - 0.08 * (z / 0.425) ** 2, z); }
+  hamGeo.computeVertexNormals();
+  const ham = new T3.Group(); ham.position.set(0, 2.32, -0.2); bd.add(ham);
+  const hamCloth = new T3.Mesh(hamGeo, mat('#d8c7a2', { map: texStripes('#d8c7a2', '#a8865a', 12), side: T3.DoubleSide })); hamCloth.castShadow = hamCloth.receiveShadow = true; ham.add(hamCloth);
+  const hamEdge = new T3.Mesh(hamGeo, new T3.MeshBasicMaterial({ color: col(INK), wireframe: false, side: T3.BackSide })); hamEdge.scale.set(1.01, 1.04, 1.06); hamEdge.position.y = -0.012; ham.add(hamEdge);
+  [-1, 1].forEach(sd => { [-0.4, 0, 0.4].forEach(z => rope(ham, [sd * 1.35, 0, z], [sd * 1.62, 0.32, 0], 0.014)); rope(ham, [sd * 1.35, 0.0, -0.43], [sd * 1.35, 0.0, 0.43], 0.03, '#6b4428'); });
+  box(bd, 0.5, 0.06, 0.5, '#8a5a35', [0.9, 0.9, -0.6]); cyl(bd, 0.12, 0.12, 0.3, '#b8673a', [0.9, 1.08, -0.6]);   // little stool with a jug
   const lantern = box(bd, 0.3, 0.42, 0.3, '#ffcf73', [1.0, 3.0, 0.9], { emissive: '#ffb040', ei: 1.2 });
   const lampL = new T3.PointLight(col('#ffb060'), 14, 12, 1.6); lampL.castShadow = true; lampL.shadow.mapSize.set(512, 512); lampL.position.set(1.0, 2.75, 1.05); bd.add(lampL);
   sunSprite(bd, [1.0, 3.0, 0.95], 2.6, 'rgba(255,210,140,0.9)', 'rgba(255,150,60,0)');
@@ -237,11 +260,11 @@ function makeShip() {
         return { scene: sc, camera: cam, post: g => { stormPost(t, flash, 3)(g); dark(g, seg(t, tB, tB + 0.3)); } };
       }
       const tb = t - tB;
-      cam3(bcam, tb, [[0.3, { p: [0, 2.0, 4.3], l: [0, 1.85, -0.2] }], [2.0, { p: [0, 1.95, 3.6], l: [0, 1.85, -0.2] }]]);
-      const sw = Math.sin(NOW * 1.6) * 0.04; ham.position.x = sw;
+      cam3(bcam, tb, [[0.3, { p: [0.3, 3.4, 5.0], l: [0, 1.75, -0.2] }], [2.0, { p: [0.3, 3.2, 4.3], l: [0, 1.75, -0.2] }]]);
+      const sw = Math.sin(NOW * 1.6) * 0.04; ham.position.x = sw; ham.rotation.x = Math.sin(NOW * 1.6) * 0.05;
       lantern.position.x = 1.0 + Math.sin(NOW * 1.6) * 0.06;
-      Jl.draw(g => sketchman(g, { x: 900, y: 640, s: 1.53 * 1.69, rot: -PI / 2, dir: 1, pose: alive({ ...POSES.idle, air: 1, aF: [20, 30], aB: [-25, -20] }, tb, 0.8), face: { eyes: 'closed', mouth: 'o' } })).at(sw - 0.05, 2.05, -0.2, bcam);
-      const head = toScreen([-0.85 + sw, 2.4, -0.2], bcam);
+      Jl.draw(g => sketchman(g, { x: 900, y: 640, s: 1.53 * 1.69, rot: -PI / 2, dir: 1, pose: alive({ ...POSES.idle, air: 1, aF: [20, 30], aB: [-25, -20] }, tb, 0.8), face: { eyes: 'closed', mouth: 'o' } })).at(sw - 0.05, 1.27, -0.15, bcam);
+      const head = toScreen([-0.95 + sw, 2.15, -0.2], bcam);
       return { scene: bd, camera: bcam, post: g => {
         for (let i = 0; i < 3; i++) { const p = mod(NOW * 0.7 + i / 3, 1); g.save(); g.globalAlpha = Math.sin(p * PI); g.font = `900 ${50 + p * 50}px Montserrat`; g.textAlign = 'center'; g.lineWidth = 9; g.strokeStyle = INK; g.strokeText('Z', head[0] + 40 + p * 90, head[1] - 60 - p * 280); g.fillStyle = '#fff4dc'; g.fillText('Z', head[0] + 40 + p * 90, head[1] - 60 - p * 280); g.restore(); }
         dark(g, 1 - seg(tb, 0.3, 0.65));

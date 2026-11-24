@@ -298,3 +298,12 @@ function town(parent, o) {
   inst(B, items.awn, (b, d) => { d.position.set(b[0], b[1], b[2]); d.rotation.set(faceTo * 0.35, 0, 0); d.scale.set(b[3], 0.06, 0.95); return [b[3], 0.06, 0.95, b[4]]; }, {}, 0.025);
   return placed;
 }
+
+// a rope/cable drawn between two points (ink-dark cylinder, oriented with a quaternion)
+function rope(parent, a, b, r = 0.03, c = '#3a2a20') {
+  const A = new T3.Vector3(...a), B = new T3.Vector3(...b), L = A.distanceTo(B);
+  const m = new T3.Mesh(new T3.CylinderGeometry(r, r, L, 8), mat(c));
+  m.position.copy(A).add(B).multiplyScalar(0.5);
+  m.quaternion.setFromUnitVectors(new T3.Vector3(0, 1, 0), B.clone().sub(A).normalize());
+  m.castShadow = true; parent.add(m); return m;
+}
