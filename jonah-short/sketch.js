@@ -30,6 +30,22 @@ const TOWN = [
   { robe: ['#2f6f8f', '#285f7d'], head: 'veil', headCol: '#b8487a' }, { robe: ['#b8487a', '#a63d6c'], head: 'veil', headCol: '#8cbf4a', k: 0.62 },
   { robe: ['#9a7a3a', '#8a6c30'], head: 'scarf', headCol: '#3d68b5', tails: true },
 ];
+// Rick's Clips rig looks for each sketch look (draw.js person())
+const RIG = {
+  jonah: () => ({ ...JONAH, shoes: '#7a4a2a' }),
+  sailor0: () => ({ ...SAILORS[0], collar: '#c8423a' }), sailor1: () => ({ ...SAILORS[1], mustache: true, beardCol: '#3a2a20' }),
+  sailor2: () => ({ ...SAILORS[2] }), sailor3: () => ({ ...SAILORS[3], collar: '#3f9a5a' }),
+  king: () => ({ id: 'K', robe: '#8f1f24', trim: '#e0b03a', collar: '#e0b03a', upper: '#a8282c', head: 'crown', beard: 'curly' }),
+  kingSack: () => ({ ...KING_SACK }),
+};
+function rigLook(L) {
+  for (const k in LOOKS) if (LOOKS[k] === L && RIG[k]) return RIG[k]();
+  const o = { robe: L.sack ? '#8b6b47' : L.robe[0], sack: !!L.sack };
+  if (L.head === 'veil' || L.head === 'hair' || L.head === 'scarf' || L.head === 'headband' || L.head === 'cap') { o.head = L.head; o.headCol = L.headCol; }
+  if (L.beard) { if (L.beardStyle === 'stache') { o.mustache = true; o.beardCol = L.beard; } else { o.beard = L.beardStyle === 'full' ? 'full' : L.beardStyle === 'curly' ? 'curly' : 'short'; o.beardCol = L.beard; } }
+  if (!L.sack && L.robe[1] && L.robe[1] !== L.robe[0] && Math.abs(parseInt(L.robe[1].slice(1), 16) - parseInt(L.robe[0].slice(1), 16)) > 0x202020) o.stripes = L.robe;
+  return o;
+}
 const sackLook = L => ({ ...L, robe: ['#8b6b47', '#7d6040'], sack: true, trim: null, belt: null });
 
 // smooth deterministic noise for the hand-drawn "boil" (redrawn every frame = animated on ones)

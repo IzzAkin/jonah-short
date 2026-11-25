@@ -210,7 +210,15 @@ class Card {
   // the hand-drawn jointed Jonah (sketch.js); 1 sketch H = 300 units, sized to the same 1.65 m as the rig
   sketch(opts, extra) {
     this.mat.color.set(CHAR_LIGHT.tint);
-    return this.draw(g => { sketchman(g, { ...opts, x: this.ax + (opts.dx || 0), y: this.ay, s: (this.base || 1.9) * 1.69 * (opts.k || 1) }); if (extra) extra(g, this); });
+    return this.draw(g => {
+      if (CHAR_STYLE === 'rick') {
+        const sc = (this.base || 1.9) * 1.69 * (opts.k || 1), P = typeof opts.pose === 'string' ? POSES[opts.pose] : opts.pose;
+        g.save(); g.translate(this.ax + (opts.dx || 0), this.ay - 120 * sc); if (opts.rot) g.rotate(opts.rot); g.translate(0, 120 * sc);
+        rickFigure(g, sc, opts.dir || 1, { pose: P, actW: 0 }, null, { face: opts.face, seaweed: opts.seaweed, back: opts.back, id: 'J' });
+        g.restore();
+      } else sketchman(g, { ...opts, x: this.ax + (opts.dx || 0), y: this.ay, s: (this.base || 1.9) * 1.69 * (opts.k || 1) });
+      if (extra) extra(g, this);
+    });
   }
   hide() { this.group.visible = false; return this; }
   tint(c) { this.mat.color.set(c); return this; }

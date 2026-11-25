@@ -263,7 +263,7 @@ function makeShip() {
       cam3(bcam, tb, [[0.3, { p: [0.3, 3.4, 5.0], l: [0, 1.75, -0.2] }], [2.0, { p: [0.3, 3.2, 4.3], l: [0, 1.75, -0.2] }]]);
       const sw = Math.sin(NOW * 1.6) * 0.04; ham.position.x = sw; ham.rotation.x = Math.sin(NOW * 1.6) * 0.05;
       lantern.position.x = 1.0 + Math.sin(NOW * 1.6) * 0.06;
-      Jl.draw(g => sketchman(g, { x: 900, y: 640, s: 1.53 * 1.69, rot: -PI / 2, dir: 1, pose: alive({ lean: 0, tilt: 8, air: 1, aF: [28, 95], aB: [-20, -30], lF: [14, -22], lB: [-6, -40] }, tb, 0.6), face: { eyes: 'closed', mouth: 'o' } })).at(sw - 0.05, 1.47, 0.3, bcam);
+      Jl.draw(g => CHAR_STYLE === 'rick' ? person(g, { ...rigLook(LOOKS.jonah), x: 1150, y: 300, s: 1.53 * 1.69 * 300 / 507 * 0.92, rot: -PI / 2, dir: 1, idle: false, arms: { l: [8, 30], r: [-6, -40] }, eyes: 'closed', mouth: 'o' }) : sketchman(g, { x: 900, y: 640, s: 1.53 * 1.69, rot: -PI / 2, dir: 1, pose: alive({ lean: 0, tilt: 8, air: 1, aF: [28, 95], aB: [-20, -30], lF: [14, -22], lB: [-6, -40] }, tb, 0.6), face: { eyes: 'closed', mouth: 'o' } })).at(sw - 0.05, 1.47, 0.3, bcam);
       const head = toScreen([-0.95 + sw, 2.15, -0.2], bcam);
       return { scene: bd, camera: bcam, post: g => {
         for (let i = 0; i < 3; i++) { const p = mod(NOW * 0.7 + i / 3, 1); g.save(); g.globalAlpha = Math.sin(p * PI); g.font = `900 ${50 + p * 50}px Montserrat`; g.textAlign = 'center'; g.lineWidth = 9; g.strokeStyle = INK; g.strokeText('Z', head[0] + 40 + p * 90, head[1] - 60 - p * 280); g.fillStyle = '#fff4dc'; g.fillText('Z', head[0] + 40 + p * 90, head[1] - 60 - p * 280); g.restore(); }

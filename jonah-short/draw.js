@@ -223,7 +223,16 @@ function person(g, o) {
     line(g, x0, y0, x1, y1, 5);
     ell(g, x1 + d.dir * 6, y1 - 4, 13, 6); fs(g, d.shoes || '#3a2a24', 3);
   };
-  if (!sit) {
+  const JP = {};
+  if (!sit && d.legAng) {
+    // physics-driven legs: [hip angle, knee bend] per leg, + = toward facing; short robe legs, so the whole leg swings
+    const L = legH + 6;
+    [['F', 18 * d.dir], ['B', -18 * d.dir]].forEach(([k, x0]) => {
+      const [a, kb] = d.legAng[k], th = (a + kb * 0.45) * PI / 180, lift = Math.max(0, -kb) / 120 * 0.45 * L;
+      const fx = x0 + d.dir * Math.sin(th) * L, fy = hemY - 4 + Math.cos(th) * L - lift;
+      leg(x0, hemY - 4, fx, Math.min(0, fy - (hemY - 4 + L) + 0)); JP['foot' + k] = [fx, Math.min(0, fy - (hemY - 4 + L))];
+    });
+  } else if (!sit) {
     const sw = d.walk == null ? 0 : Math.sin(d.walk) * 30;
     const up = d.walk == null ? 0 : Math.max(0, Math.cos(d.walk)) * 10;
     leg(-18, hemY - 4, -24 - sw, -up);
@@ -247,6 +256,7 @@ function person(g, o) {
     g.beginPath(); g.moveTo(side * sx, sy); g.lineTo(ex, ey); g.lineTo(hx2, hy2); stroke(g, 5);
     if (item) item(hx2, hy2);
     circle(g, hx2, hy2, 7); fill(g, OUT);
+    JP['hand' + (side * d.dir > 0 ? 'F' : 'B')] = [hx2, hy2]; JP['elbow' + (side * d.dir > 0 ? 'F' : 'B')] = [ex, ey];
   };
 
   // body (breathing bob lifts everything above the legs)
@@ -328,7 +338,12 @@ function person(g, o) {
 
   // head
   drawHead(g, hx, hy, R, d);
+  const M = g.getTransform(), mp = p => { const q = M.transformPoint(new DOMPoint(p[0], p[1])); return [q.x, q.y]; };
+  const out = { head: mp([hx, hy]), hip: mp([0, hemY]) };
+  ['handF', 'handB', 'elbowF', 'elbowB', 'footF', 'footB'].forEach(k => { out[k] = JP[k] ? mp(JP[k]) : out.hip; });
+  out.kneeF = out.footF; out.kneeB = out.footB;
   g.restore();
+  return out;
 }
 
 function drawHead(g, hx, hy, R, d) {

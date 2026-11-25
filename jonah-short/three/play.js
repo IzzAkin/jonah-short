@@ -198,7 +198,7 @@ function stepAnim(A, R, inp) {
   const kQ = 260, cQ = 2 * Math.sqrt(kQ) * 0.38;
   A.qv += (-kQ * A.q - cQ * A.qv) * dt; A.q += A.qv * dt;
   // story acting: a named pose (or pose object) blended in on a spring weight; fades out the same way
-  if (inp.act) A.actPose = typeof inp.act === 'string' ? POSES[inp.act] : inp.act;
+  if (inp.act) { A.actPose = typeof inp.act === 'string' ? POSES[inp.act] : inp.act; A.actName = typeof inp.act === 'string' ? inp.act : 'custom'; }
   A.actW = (A.actW || 0) + ((inp.act ? 1 : 0) - (A.actW || 0)) * (1 - Math.exp(-dt * (inp.actRate || 8)));
   if (A.actPose && A.actW > 0.002) {
     const ap = alive(A.actPose, A.t, inp.actLife ?? 1); const keep = { aF: P.aF, aB: P.aB };
@@ -211,6 +211,24 @@ function stepAnim(A, R, inp) {
 }
 
 // draw the runner onto its card canvas: squash/stretch transform, the figure, then smears from joint history
+// Character style for the film: 'rick' = the Rick's Clips rig (draw.js person), 'sketch' = the jointed stick figure.
+let CHAR_STYLE = 'rick';
+// Drive the Rick's Clips rig from the physics/animation state: arms and legs follow the blended pose, lean tilts the
+// figure, acted kneel/sit/pray poses switch the rig's body pose. Returns joint positions for smears.
+function rickFigure(g, sc, f, A, R, opts) {
+  const P = A.pose || POSES.idle, s = sc * 300 / 507 * (opts.k || 1);
+  const arm = (a, side) => side ? [a[0], a[0] + a[1]] : [-a[0], -(a[0] + a[1])];
+  const front = f > 0, arms = front ? { r: arm(P.aF, 1), l: arm(P.aB, 0) } : { l: arm(P.aF, 1), r: arm(P.aB, 0) };
+  const act = A.actW > 0.5 ? A.actName : null;
+  const pose = act === 'kneel' || act === 'pray' || act === 'cower' ? 'kneel' : act === 'sit' || act === 'sitBow' || act === 'perch' ? 'sit' : 'stand';
+  const bow = act === 'pray' ? 0.55 : act === 'sitBow' ? 0.35 : act === 'cower' ? 0.4 : 0;
+  const lean = (P.lean || 0) * PI / 180 * 0.45 * f;
+  const fc = opts.face || {};
+  return person(g, { ...rigLook(opts.look || LOOKS.jonah), x: 0, y: 0, s, dir: f, id: opts.id || 'J', idle: false, rot: lean + (opts.shake ? Math.sin(NOW * 70) * 0.03 : 0),
+    pose, bow, arms, legAng: pose === 'stand' ? { F: P.lF, B: P.lB } : null, back: opts.back, seaweed: opts.seaweed,
+    eyes: fc.eyes || 'dot', brows: fc.brows || null, mouth: fc.mouth || 'line', sweat: fc.sweat, red: fc.red });
+}
+function rickFigureSteam(g, J, s) { for (let i = 0; i < 4; i++) { const p = mod(NOW * 1.6 + i / 4, 1), side = i % 2 ? 1 : -1; circle(g, J.head[0] + side * (80 + p * 60) * s, J.head[1] - (50 + p * 170) * s, (14 + p * 30) * s); fill(g, `rgba(255,255,255,${0.9 * (1 - p)})`); } }
 function drawRunner(g, card, R, A, sc, light, opts = {}) {
   const W = card.w, H = card.h, ox = card.ax, oy = card.ay;
   g.clearRect(0, 0, W, H);
@@ -224,7 +242,7 @@ function drawRunner(g, card, R, A, sc, light, opts = {}) {
   g.rotate(ang); g.scale(1 + k, 1 - k * 0.6); g.rotate(-ang);
   const q = clamp(A.q, -0.32, 0.3);
   g.scale((1 - q * 0.65) * face, 1 + q);
-  const J = sketchman(g, { x: 0, y: 0, s: sc * (opts.k || 1), dir: f, pose: A.pose || POSES.idle, look: opts.look || LOOKS.jonah, id: opts.id || 'J', back: opts.back, seaweed: opts.seaweed, shake: opts.shake || 0, vel: [R.vx / PH.H, R.vy / PH.H], hemOff: [A.hem[0], A.hem[1]],
+  const J = CHAR_STYLE === 'rick' ? rickFigure(g, sc, f, A, R, opts) : sketchman(g, { x: 0, y: 0, s: sc * (opts.k || 1), dir: f, pose: A.pose || POSES.idle, look: opts.look || LOOKS.jonah, id: opts.id || 'J', back: opts.back, seaweed: opts.seaweed, shake: opts.shake || 0, vel: [R.vx / PH.H, R.vy / PH.H], hemOff: [A.hem[0], A.hem[1]],
     tailChain: A.chain ? A.chain.map(n => [n.x, n.y]) : undefined, face: { eyes: R.ground && A.w.skid > 0.5 ? 'wide' : 'dot', brows: A.w.skid > 0.5 ? 'worried' : 'soft', mouth: A.w.air > 0.5 ? 'o' : A.w.skid > 0.5 ? 'wobbly' : 'line', ...(opts.face || {}) } });
   g.restore();
   // smear frames: tapered ink arcs from recent tip positions when a limb or the body moves fast
