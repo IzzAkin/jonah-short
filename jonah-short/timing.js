@@ -3,20 +3,20 @@
 // When a real voice-over exists, put forced-alignment times in words.override.js
 // (window.WORD_OVERRIDE = [{w, t0}, ...]) and every caption and word-cued action follows it.
 const FPS = 30, W = 1080, H = 1920;
-const END = 55.0; // 54 s of narration plus a 1 s hold
+const END = 60.40; // narration plus a 1 s hold
 
 const SHOTS = [
-  { n: 1,  a: 0.0,  b: 4.8,  text: 'A man spent three days inside a fish, and he got there by running from God.' },
-  { n: 2,  a: 4.8,  b: 11.1, text: "God told Jonah to go to Nineveh, the enemy's great city, and warn it. Jonah bought a ticket going the opposite way." },
-  { n: 3,  a: 11.1, b: 17.5, text: 'Out at sea, a storm hit so hard the sailors each cried out to their own god. Jonah was asleep below deck.' },
-  { n: 4,  a: 17.5, b: 22.8, text: 'They cast lots, and the lot fell on Jonah. “Throw me into the sea,” he said, “and it will calm.”' },
-  { n: 5,  a: 22.8, b: 26.3, text: 'They did. The sea went still. And a great fish swallowed him.' },
-  { n: 6,  a: 26.3, b: 29.3, text: 'For three days and three nights, Jonah prayed in the dark.' },
-  { n: 7,  a: 29.3, b: 32.1, text: 'Then the fish spat him out onto dry land.' },
-  { n: 8,  a: 32.1, b: 37.5, text: 'So he walked into Nineveh and said one sentence: “40 days, and Nineveh will be overthrown.”' },
-  { n: 9,  a: 37.5, b: 43.6, text: 'The whole city believed. Even the king sat down in ashes. And God spared them. Here’s the twist.' },
-  { n: 10, a: 43.6, b: 47.8, text: 'Jonah was furious. He’d run away because he knew God was merciful.' },
-  { n: 11, a: 47.8, b: 54.0, text: 'So God asked him, “Shouldn’t I care about a city of 120,000 people?” And the book ends on that question.' },
+  { n: 1, a: 0.00, b: 5.96,  text: 'A man spent three days inside a fish, and he got there by running from God.' },
+  { n: 2, a: 5.96, b: 12.56, text: "God told this man to go to Nineveh, the enemy's great city, and warn it. He bought a ticket going the opposite way." },
+  { n: 3, a: 12.56, b: 19.11, text: 'Out at sea, a storm hit so hard the sailors each cried out to their own god. He was asleep below deck.' },
+  { n: 4, a: 19.11, b: 25.48, text: 'They cast lots, and the lot fell on him. “Throw me into the sea,” he said, “and it will calm.”' },
+  { n: 5, a: 25.48, b: 29.42, text: 'They did. The sea went still. And a great fish swallowed him.' },
+  { n: 6, a: 29.42, b: 32.73, text: 'For three days and three nights, he prayed in the dark.' },
+  { n: 7, a: 32.73, b: 35.53, text: 'Then the fish spat him out onto dry land.' },
+  { n: 8, a: 35.53, b: 41.36, text: 'So he walked into Nineveh and said one sentence: “40 days, and Nineveh will be overthrown.”' },
+  { n: 9, a: 41.36, b: 47.54, text: 'The whole city believed. Even the king sat down in ashes. And God spared them. Here’s the twist.' },
+  { n: 10, a: 47.54, b: 52.28, text: 'He was furious. He’d run away because he knew God was merciful.' },
+  { n: 11, a: 52.28, b: 59.40, text: 'So God asked him, “Shouldn’t I care about a city of 120,000 people?” And the book ends on that question.' },
 ];
 
 function syllables(w) {

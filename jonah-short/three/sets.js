@@ -130,42 +130,48 @@ function makeHarbor() {
   cyl(sc, 0.08, 0.1, 3.4, '#7a4f2c', [-8, 1.7, -1]);
   extrude(sc, [[-1.6, 0], [-1.2, 0.36], [1.2, 0.36], [1.2, -0.36], [-1.2, -0.36]], 0.1, '#a36c3c', [-8.05, 2.9, -0.95], { ol: 0.03 });
   const s1 = new T3.Mesh(new T3.PlaneGeometry(2.3, 0.6), new T3.MeshLambertMaterial({ map: texSign('NINEVEH', '#a36c3c', '#fff4dc', 1024, 256, -1), transparent: true })); s1.position.set(-8.15, 2.9, -0.89); sc.add(s1);
-  cyl(sc, 0.06, 0.07, 2.2, '#7a4f2c', [12.4, 1.1, -0.4]);
-  extrude(sc, [[1.2, 0], [0.9, 0.26], [-0.9, 0.26], [-0.9, -0.26], [0.9, -0.26]], 0.08, '#a36c3c', [12.5, 1.9, -0.35], { ol: 0.025 });
-  const s2 = new T3.Mesh(new T3.PlaneGeometry(1.7, 0.42), new T3.MeshLambertMaterial({ map: texSign('TARSHISH', '#a36c3c', '#fff4dc', 1024, 256, 1), transparent: true })); s2.position.set(12.45, 1.9, -0.3); sc.add(s2);
+  cyl(sc, 0.08, 0.1, 3.2, '#7a4f2c', [-2.6, 1.6, -1.1]);
+  extrude(sc, [[1.75, 0], [1.35, 0.5], [-1.45, 0.5], [-1.45, -0.5], [1.35, -0.5]], 0.1, '#a36c3c', [-2.5, 2.75, -1.05], { ol: 0.03 });
+  const s2 = new T3.Mesh(new T3.PlaneGeometry(2.8, 0.92), new T3.MeshLambertMaterial({ map: canvasTex(1024, 336, g => {
+    g.fillStyle = '#a36c3c'; g.fillRect(0, 0, 1024, 336);
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 10; g.strokeStyle = 'rgba(60,30,10,0.6)'; g.fillStyle = '#fff4dc';
+    g.font = '900 118px Montserrat'; g.strokeText('OPPOSITE WAY', 470, 120); g.fillText('OPPOSITE WAY', 470, 120);
+    g.font = '900 84px Montserrat'; g.strokeText('(TARSHISH)', 470, 238); g.fillText('(TARSHISH)', 470, 238); }), transparent: true }));
+  s2.position.set(-2.55, 2.75, -0.99); sc.add(s2);
   // crates and ropes on the quay
   [[3.5, -2.2], [4.3, -2.6], [3.9, -1.5]].forEach(([x, z], i) => box(sc, 0.8, 0.8, 0.8, '#b07a48', [x, 0.4 + (i === 2 ? 0.8 : 0), z], { map: texPlanks('#b07a48', 'rgba(40,20,10,0.6)', [1, 1]) }));
   const coins = [0, 1, 2].map(() => cyl(sc, 0.07, 0.07, 0.02, '#f2c13c', [0, 0, 0], { emissive: '#b8860b', ei: 0.4, ol: 0.008 }));
   const J = LEAD(sc), S = CREW(sc), cam = newCam();
-  const tJ = wt(2, 'Jonah', 2), tTicket = wt(2, 'ticket'), tOpp = wt(2, 'opposite'), tc = tJ - 0.1;
+  const tJ = wt(2, 'He'), tTicket = wt(2, 'ticket'), tOpp = wt(2, 'opposite'), tc = tJ - 0.1;
   // Jonah: studies the NINEVEH sign, edges toward it, then whips round and sprints the other way, skids to a stop at the
   // sailor, pays, and bolts for the ship. The sailor counts the coins and turns to watch him go.
-  const jon = new Actor({ card: J, id: 'J', x: 0, z: 0, dir: -1,
+  const jon = new Actor({ card: J, id: 'J', x: -6.3, z: 0, dir: -1,
     script: (t, R) => {
       if (t < 0.9) return { act: 'stare' };
-      if (t < tc - 0.6) return seek(R, -1.0, 1.1);
+      if (t < tc - 0.6) return seek(R, -6.9, 1.1);
       if (t < tc) return { act: 'stare' };
-      if (t < tTicket - 0.4) return seek(R, 0.7);
+      if (t < tTicket - 0.4) return seek(R, -3.15);
       if (t < tOpp + 0.25) return { act: t > tTicket - 0.35 ? 'pay' : null, faceTo: 1 };
       return { right: true };
     },
     face: t => t < tc ? { eyes: 'dot', brows: 'worried', mouth: 'frown' } : t < tOpp + 0.25 ? { brows: 'raised', mouth: 'smile' } : { eyes: 'dot', brows: 'soft', mouth: 'smile' } });
-  const sailorA = new Actor({ card: S, id: 'S1', x: 2.05, z: -0.1, dir: -1, look: LOOKS.sailor1,
+  const sailorA = new Actor({ card: S, id: 'S1', x: -1.8, z: -0.1, dir: -1, look: LOOKS.sailor1,
     script: (t, R) => ({ act: t > tTicket - 0.2 && t < tOpp + 0.6 ? 'plead' : t > tOpp + 0.7 ? 'wave' : null, faceTo: t > tOpp + 0.45 ? 1 : -1, actRate: 6 }),
     face: t => ({ eyes: t > tOpp + 0.45 ? 'wide' : 'dot', mouth: t > tTicket ? 'smile' : 'line' }) });
   const fn = function (t) {
     sea.userData.update(NOW); shipFlag.userData.update(NOW);
     jon.advance(t);
     const jx = jon.R.x;
-    cam3(cam, t, [[0, { p: [-8.3, 1.8, 6.8], l: [-8.2, 2.3, -1] }], [0.6, { p: [-8.3, 1.8, 6.8], l: [-8.2, 2.3, -1] }], [tc, { p: [-6, 1.75, 6.8], l: [-5.6, 1.9, -1] }],
-      [tc, { p: [0.75, 1.45, 6.2], l: [0.75, 1.15, 0] }, 'cut'], [tOpp + 0.25, { p: [0.95, 1.45, 6.2], l: [0.95, 1.15, 0] }], [6.3, { p: [3.6, 1.5, 6.4], l: [4.6, 1.15, 0] }]]);
+    // one continuous take: from the NINEVEH sign, follow him to the ticket sailor under the OPPOSITE WAY sign, then off to the ship
+    cam3(cam, t, [[0, { p: [-7.6, 1.85, 6.6], l: [-7.4, 2.05, -1] }], [tc + 0.1, { p: [-7.2, 1.85, 6.6], l: [-7.0, 2.0, -1] }],
+      [tTicket - 0.15, { p: [-2.5, 1.85, 7.2], l: [-2.35, 1.75, -1] }], [tOpp + 0.25, { p: [-2.3, 1.85, 7.2], l: [-2.15, 1.75, -1] }], [6.3, { p: [0.2, 1.7, 7.0], l: [1.2, 1.35, 0] }]]);
     jon.draw(t, cam, (g, c, R) => { if (R.skid) dustPuff(g, c.ax, c.ay, mod(t * 4, 1), 1.3, 3); });
     sailorA.draw(t, cam);
     const k = seg(t, tTicket - 0.05, tTicket + 0.45);
     coins.forEach((c, i) => {
       const kk = clamp(k * 1.4 - i * 0.2);
       c.visible = k > 0 && t < tOpp + 0.6;
-      c.position.set(lerp(jx + 0.32, 1.75, kk), lerp(0.95, 0.88, kk) + Math.sin(kk * PI) * 0.5, 0.08 + i * 0.03);
+      c.position.set(lerp(jx + 0.32, -2.1, kk), lerp(0.95, 0.88, kk) + Math.sin(kk * PI) * 0.5, 0.08 + i * 0.03);
       c.rotation.set(t * 12 + i, 0, t * 9);
     });
     return { scene: sc, camera: cam };
@@ -233,20 +239,21 @@ function makeShip() {
     // the deck pitches: the standing sailors stagger a half-step with each roll, the kneeling one rocks in place
     script: t => ({ act: stormActs[i], actLife: 1.6, right: i !== 2 && roll(t) > 0.92, left: i !== 2 && roll(t) < -0.92, cap: 0.7, faceTo: i % 2 ? -1 : 1 }),
     face: () => stormFaces[i] }));
-  const tJ4 = wt(4, 'Jonah.'), tThrow4 = wt(4, '“Throw');
+  const tJ4 = wt(4, 'him.'), tThrow4 = wt(4, '“Throw');
+  const REMORSE = { lean: 10, tilt: 16, aF: [58, -12], aB: [-8, -10], lF: [6, -4], lB: [-6, -4] };
   const lotCrew = [[1.3, 0.3, 1, 0], [2.1, -0.6, 1, 2], [5.6, -0.4, -1, 1], [6.5, 0.3, -1, 3]].map(([x, z, dir, si], i) => new Actor({ card: sailors[i], id: 'S' + si, x, z, floor: 0, dir, look: LOOKS['sailor' + si],
     // nervous huddle; when the lot falls on Jonah they lean back and stare at him
     script: t => ({ act: t > tJ4 - 0.05 ? 'shocked' : 'arms', actRate: t > tJ4 - 0.05 ? 10 : 6, faceTo: dir, left: dir < 0 && within(t, tJ4 + 0.05, tJ4 + 0.12), right: dir > 0 && within(t, tJ4 + 0.05, tJ4 + 0.12) }),
     face: t => t > tJ4 - 0.05 ? { eyes: 'wide', brows: 'raised', mouth: 'o' } : { eyes: 'dot', brows: 'worried', mouth: 'line' } }));
   // Jonah startles back when the lot rolls to his feet, then steps up and points out to sea: 'Throw me in'
   const jLot = new Actor({ card: J, id: 'J', x: 4.4, floor: 0, dir: 1,
-    script: (t, R) => t < tJ4 ? { act: 'stare' } : t < tJ4 + 0.12 ? { left: true } : t < tThrow4 - 0.2 ? { faceTo: 1, act: 'stare' } : t < tThrow4 + 0.4 ? { ...seek(R, 4.75, 1.2), act: 'point' } : { act: 'point', faceTo: 1 },
-    face: t => t < tJ4 ? { eyes: 'dot', brows: 'worried' } : t < tThrow4 - 0.15 ? { eyes: 'wide', brows: 'raised', mouth: 'o' } : { eyes: 'dot', brows: 'flat', mouth: 'open' } });
+    script: (t, R) => t < tJ4 ? { act: 'stare' } : t < tJ4 + 0.12 ? { left: true } : t < tThrow4 - 0.2 ? { faceTo: 1, act: 'cower', actRate: 5 } : t < tThrow4 + 0.5 ? { ...seek(R, 4.7, 0.8), act: REMORSE, actRate: 4 } : { act: REMORSE, faceTo: 1, actRate: 4 },
+    face: t => t < tJ4 ? { eyes: 'dot', brows: 'worried' } : t < tThrow4 - 0.15 ? { eyes: 'wide', brows: 'worried', mouth: 'o' } : { eyes: 'closed', brows: 'worried', mouth: 'frown' } });
   const deckPose = (t, flash) => { ship.rotation.z = 0.028 * Math.sin(NOW * 1.7); ship.rotation.x = 0.018 * Math.sin(NOW * 1.3); sea.userData.update(NOW); L.hemi.intensity = 1.0 + flash * 3.5; L.sun.intensity = 1.3 + flash * 2; };
   const stormPost = (t, flash, seed) => g => { rain(g, NOW, 170, 0.42); if (flash > 0) { bolt(g, seed === 3 ? 760 : 220, -100, 900, seed, flash); g.fillStyle = `rgba(225,235,255,${flash * 0.5})`; g.fillRect(0, 0, W, H); } };
   return {
     shot3(t) {
-      const tA = wt(3, 'Jonah'), tB = wt(3, 'asleep');
+      const tA = wt(3, 'He'), tB = wt(3, 'asleep');
       if (t < tB + 0.3) {
         const flash = flashAmt(t, [0.35, 2.4]); deckPose(t, flash);
         cam3(cam, t, [[0, { p: [0, 1.65, 4.7], l: [0, 1.35, 0] }], [0.25, { p: [0, 1.65, 4.7], l: [0, 1.35, 0] }], [tA - 0.25, { p: [7.5, 1.65, 4.7], l: [7.5, 1.35, 0] }],
@@ -271,7 +278,7 @@ function makeShip() {
       } };
     },
     shot4(t) {
-      const tCast = wt(4, 'cast'), tFell = wt(4, 'fell'), tJ = wt(4, 'Jonah.'), tThrow = wt(4, '“Throw');
+      const tCast = wt(4, 'cast'), tFell = wt(4, 'fell'), tJ = wt(4, 'him.'), tThrow = wt(4, '“Throw');
       const flash = flashAmt(t, [tJ]); deckPose(t, flash);
       cam3(cam, t, [[0, { p: [3.0, 1.55, 2.6], l: [3, 1.0, 0] }], [tFell - 0.15, { p: [3.25, 1.45, 2.6], l: [3.25, 0.95, 0] }], [tJ, { p: [4.3, 0.75, 2.4], l: [4.3, 0.15, 0.5] }],
         [tJ + 0.35, { p: [4.0, 1.9, 10.5], l: [4.0, 1.1, 0] }], [tThrow - 0.15, { p: [4.75, 1.6, 4.0], l: [4.5, 1.45, 0] }, 'cut']]);
@@ -299,10 +306,20 @@ function makeSea() {
   for (let i = 0; i < 14; i++) sph(sc, 0.5 + r() * 1.1, '#6c7f86', [-12 + r() * 24, -2.6, -4 - r() * 18], { s: [1.3, 0.6, 1], ol: 0.03 });
   for (let i = 0; i < 18; i++) { const k = box(sc, 0.14, 3 + r() * 3, 0.02, '#3f8a5a', [-12 + r() * 24, -1, -3 - r() * 16], { ol: 0.015 }); k.userData.ph = r() * TAU; kelp.push(k); }
   const bub = [0, 1, 2, 3, 4, 5].map(() => sph(sc, 0.06, '#ffffff', [0, 0, 0], { emissive: '#e0f8ff', ei: 0.8 }));
-  const J = LEAD(sc);
+  const J = LEAD(sc); J.shadowM.visible = false; J.mesh.castShadow = false;
   const F = new Card(sc, { w: 2048, h: 1024, ax: 1024, ay: 560, pxm: 110, face: 'cam', blob: 0, castShadow: false });
   const cam = newCam();
-  return function (t) {
+  // intro: outside view of the great fish swimming, the camera pulling back from its flank to the whole animal
+  const wcam = newCam();
+  const whale = function (u) {
+    surf.userData.update(NOW, 0.12); kelp.forEach(k => (k.rotation.z = Math.sin(NOW * 1.3 + k.userData.ph) * 0.12));
+    J.hide(); bub.forEach(b => (b.visible = false));
+    cam3(wcam, u, [[0, { p: [2.4, 4.6, 7.5], l: [1.2, 4.3, -2] }], [2.6, { p: [0.4, 5.6, 24], l: [0, 4.2, -2] }]], { noPush: true });
+    F.roll = 0;
+    F.draw(g => fish(g, 1024, 560, 1.1, Math.sin(NOW * 1.6) * 0.03, 0)).at(-1 + NOW * 0.25 - 0.25 * SHOTS[0].a, 4.2 + Math.sin(NOW * 1.2) * 0.15, -2, wcam);
+    return { scene: sc, camera: wcam, post: g => { const k = seg(u, 1.4, 2.6); if (k > 0) { /* nothing */ } } };
+  };
+  const fn = function (t) {
     const tStill = wt(5, 'still.'), tFish = wt(5, 'fish'), tSw = wt(5, 'swallowed');
     surf.userData.update(NOW, lerp(0.25, 0.04, seg(t, 0.4, tStill + 0.3)));
     kelp.forEach(k => (k.rotation.z = Math.sin(NOW * 1.3 + k.userData.ph) * 0.12));
@@ -326,6 +343,7 @@ function makeSea() {
       dark(g, seg(t, 2.6, 3.6) * 0.75, '4,14,28');
     } };
   };
+  fn.whale = whale; return fn;
 }
 
 // ================================================================== the beach at sunrise (shot 7)
@@ -347,7 +365,7 @@ function makeBeach() {
   const tS7 = wt(7, 'spat') + 0.05;
   const jSpat = new Actor({ card: J, id: 'J', x: 2.6, y: 1.1, z: 1.7, floor: 0, dir: 1, start: tS7, seaweed: true,
     init: R => Object.assign(R, { ground: false, vx: -2.5, vy: 5.6, airT: 0 }),
-    script: (t, R) => !R.ground ? { tumble: -TAU / 0.8, down: R.vy < 0, jump: R.vy > 0 } : R.rollT > 0 ? {} : { act: 'kneel', actRate: 5 },
+    script: (t, R) => !R.ground ? { tumble: -1.1, jump: R.vy > 0, act: 'sink', actRate: 14 } : R.rollT > 0 ? {} : { act: 'kneel', actRate: 5 },
     face: (t, R) => !R.ground || R.rollT > 0 ? { eyes: 'wide', mouth: 'o' } : { eyes: 'wide', brows: 'raised', mouth: 'wobbly' } });
   return function (tb) {
     sea.userData.update(NOW); foam.position.z = -2.9 + Math.sin(NOW * 1.3) * 0.35; foam.material.opacity = 0.6 + 0.3 * Math.sin(NOW * 1.3 + 1);
@@ -590,13 +608,14 @@ function makeCity() {
 // ------------------------------------------------------------------ shot table (same order as SHOTS; shots 6 and 7 are one take)
 let SETS = null;
 function buildSets() {
-  const fishSet = makeFish(), ship = makeShip(), beach = makeBeach();
+  const fishSet = makeFish(), ship = makeShip(), beach = makeBeach(), seaSet = makeSea();
+  const tW = wt(1, 'fish,') + 0.25;
   SETS = {
-    1: t => fishSet.shot1(t),
+    1: t => { const outside = CUT_T != null ? CAM_SIDE === 'after' : t >= tW; return outside ? seaSet.whale(t - tW) : fishSet.shot1(t); },
     2: makeHarbor(),
     3: t => ship.shot3(t),
     4: t => ship.shot4(t),
-    5: makeSea(),
+    5: seaSet,
     6: t => {
       const T7 = SHOTS[6].a - SHOTS[5].a, tSpat = T7 + wt(7, 'spat');
       if (t < tSpat - 0.05) {

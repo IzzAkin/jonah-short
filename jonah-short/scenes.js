@@ -12,7 +12,7 @@ const A = (n, l) => SHOTS[n - 1].a + l;   // shot-local time -> absolute film ti
 // Camera cuts inside shots (dissolved by main.js) and the one dead hold on a gag line.
 function subcuts() {
   return [
-    { t: A(2, wt(2, 'Jonah', 2) - 0.1), type: 'dissolve' },
+    { t: A(1, wt(1, 'fish,') + 0.25), type: 'dissolve' },
     { t: A(4, wt(4, '“Throw') - 0.15), type: 'dissolve' },
     { t: A(8, wt(8, '“40') - 0.15), type: 'dissolve' },
     { t: A(9, wt(9, 'Even') - 0.1), type: 'dissolve' },
@@ -93,7 +93,7 @@ function harborScene(g, t, cam, s) {
   });
 }
 function s2(g, t) {
-  const tJ = wt(2, 'Jonah', 2), tTicket = wt(2, 'ticket'), tOpp = wt(2, 'opposite');
+  const tJ = wt(2, 'He'), tTicket = wt(2, 'ticket'), tOpp = wt(2, 'opposite');
   const tc = tJ - 0.1;
   const cam = kf(t, [[0, { x: 420, y: 1200, z: 1.32 }], [0.6, { x: 420, y: 1200, z: 1.32 }], [tc, { x: 620, y: 1220, z: 1.3 }],
     [tc, { x: 1330, y: 1240, z: 1.42 }, 'cut'], [tOpp, { x: 1360, y: 1240, z: 1.42 }], [6.0, { x: 1840, y: 1240, z: 1.25 }]]);
@@ -143,7 +143,7 @@ function deck(g, t, cam, flash, chars) {
   if (flash > 0) { g.fillStyle = `rgba(225,235,255,${flash * 0.55})`; g.fillRect(0, 0, W, H); }
 }
 function s3(g, t) {
-  const tA = wt(3, 'Jonah'), tB = wt(3, 'asleep'), tBelow = wt(3, 'below');
+  const tA = wt(3, 'He'), tB = wt(3, 'asleep'), tBelow = wt(3, 'below');
   const flash = flashAmt(t, [0.35, 2.4]);
   const cam = kf(t, [[0, { x: 260, y: 1250, z: 1.32 }], [0.25, { x: 260, y: 1250, z: 1.32 }], [tA - 0.25, { x: 1640, y: 1250, z: 1.32 }],
     [tB - 0.05, { x: 2080, y: 1700, z: 1.6 }], [tB + 0.35, { x: 2080, y: 1720, z: 7 }]]);
@@ -195,7 +195,7 @@ function belowDeck(g, t) {
   });
 }
 function s4(g, t) {
-  const tCast = wt(4, 'cast'), tFell = wt(4, 'fell'), tJ = wt(4, 'Jonah.'), tThrow = wt(4, '“Throw');
+  const tCast = wt(4, 'cast'), tFell = wt(4, 'fell'), tJ = wt(4, 'him.'), tThrow = wt(4, '“Throw');
   const flash = flashAmt(t, [tJ]);
   const cam = kf(t, [[0, { x: 520, y: 1470, z: 1.9 }], [tFell - 0.15, { x: 560, y: 1480, z: 1.9 }], [tJ, { x: 820, y: 1560, z: 1.9 }],
     [tJ + 0.35, { x: 700, y: 1300, z: 1.12 }], [tThrow - 0.15, { x: 900, y: 1210, z: 1.55 }, 'cut']]);
