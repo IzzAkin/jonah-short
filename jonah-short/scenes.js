@@ -13,10 +13,6 @@ const A = (n, l) => SHOTS[n - 1].a + l;   // shot-local time -> absolute film ti
 function subcuts() {
   return [
     { t: A(1, wt(1, 'fish,') + 0.25), type: 'dissolve' },
-    { t: A(4, wt(4, '“Throw') - 0.15), type: 'dissolve' },
-    { t: A(8, wt(8, '“40') - 0.15), type: 'dissolve' },
-    { t: A(9, wt(9, 'Even') - 0.1), type: 'dissolve' },
-    { t: A(11, wt(11, 'And') - 0.1), type: 'dissolve' },
   ];
 }
 function holds() { return [[A(9, wt(9, 'the', 3)), SHOTS[8].b - 0.16]]; }

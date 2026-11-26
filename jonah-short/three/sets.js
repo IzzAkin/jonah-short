@@ -131,12 +131,16 @@ function makeHarbor() {
   extrude(sc, [[-1.6, 0], [-1.2, 0.36], [1.2, 0.36], [1.2, -0.36], [-1.2, -0.36]], 0.1, '#a36c3c', [-8.05, 2.9, -0.95], { ol: 0.03 });
   const s1 = new T3.Mesh(new T3.PlaneGeometry(2.3, 0.6), new T3.MeshLambertMaterial({ map: texSign('NINEVEH', '#a36c3c', '#fff4dc', 1024, 256, -1), transparent: true })); s1.position.set(-8.15, 2.9, -0.89); sc.add(s1);
   cyl(sc, 0.08, 0.1, 3.2, '#7a4f2c', [-2.6, 1.6, -1.1]);
-  extrude(sc, [[1.75, 0], [1.35, 0.5], [-1.45, 0.5], [-1.45, -0.5], [1.35, -0.5]], 0.1, '#a36c3c', [-2.5, 2.75, -1.05], { ol: 0.03 });
-  const s2 = new T3.Mesh(new T3.PlaneGeometry(2.8, 0.92), new T3.MeshLambertMaterial({ map: canvasTex(1024, 336, g => {
-    g.fillStyle = '#a36c3c'; g.fillRect(0, 0, 1024, 336);
-    g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 10; g.strokeStyle = 'rgba(60,30,10,0.6)'; g.fillStyle = '#fff4dc';
-    g.font = '900 118px Montserrat'; g.strokeText('OPPOSITE WAY', 470, 120); g.fillText('OPPOSITE WAY', 470, 120);
-    g.font = '900 84px Montserrat'; g.strokeText('(TARSHISH)', 470, 238); g.fillText('(TARSHISH)', 470, 238); }), transparent: true }));
+  { // same arrow board as NINEVEH, mirrored to point the other way, 1.25x so two lines fit
+    const k = 1.25, PW = 2.3 * k, PH2 = 0.62 * k, cw = 1024, ch = Math.round(cw * PH2 / PW);
+    extrude(sc, [[1.6, 0], [1.2, 0.36], [-1.2, 0.36], [-1.2, -0.36], [1.2, -0.36]].map(([x, y]) => [x * k, y * k]), 0.1, '#a36c3c', [-2.55, 2.75, -1.05], { ol: 0.03 });
+    var s2 = new T3.Mesh(new T3.PlaneGeometry(PW, PH2), new T3.MeshLambertMaterial({ map: canvasTex(cw, ch, g => {
+      g.fillStyle = '#a36c3c'; g.fillRect(0, 0, cw, ch); noiseFill(g, cw, ch, 'rgba(0,0,0,0)', 300, 0.12, 4);
+      g.strokeStyle = 'rgba(60,30,10,0.5)'; g.lineWidth = 3; for (let i = 1; i < 4; i++) { g.beginPath(); g.moveTo(0, i * ch / 4); g.lineTo(cw, i * ch / 4); g.stroke(); }
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 9; g.strokeStyle = 'rgba(60,30,10,0.6)'; g.fillStyle = '#fff4dc';
+      const fit = (txt, px, y) => { g.font = `900 ${px}px Montserrat`; const w = g.measureText(txt).width, m = cw * 0.86; if (w > m) { px = Math.floor(px * m / w); g.font = `900 ${px}px Montserrat`; } g.strokeText(txt, cw / 2, y); g.fillText(txt, cw / 2, y); };
+      fit('OPPOSITE WAY', Math.round(ch * 0.42), ch * 0.36); fit('(TARSHISH)', Math.round(ch * 0.27), ch * 0.76); }), transparent: true }));
+  }
   s2.position.set(-2.55, 2.75, -0.99); sc.add(s2);
   // crates and ropes on the quay
   [[3.5, -2.2], [4.3, -2.6], [3.9, -1.5]].forEach(([x, z], i) => box(sc, 0.8, 0.8, 0.8, '#b07a48', [x, 0.4 + (i === 2 ? 0.8 : 0), z], { map: texPlanks('#b07a48', 'rgba(40,20,10,0.6)', [1, 1]) }));
@@ -281,7 +285,7 @@ function makeShip() {
       const tCast = wt(4, 'cast'), tFell = wt(4, 'fell'), tJ = wt(4, 'him.'), tThrow = wt(4, '“Throw');
       const flash = flashAmt(t, [tJ]); deckPose(t, flash);
       cam3(cam, t, [[0, { p: [3.0, 1.55, 2.6], l: [3, 1.0, 0] }], [tFell - 0.15, { p: [3.25, 1.45, 2.6], l: [3.25, 0.95, 0] }], [tJ, { p: [4.3, 0.75, 2.4], l: [4.3, 0.15, 0.5] }],
-        [tJ + 0.35, { p: [4.0, 1.9, 10.5], l: [4.0, 1.1, 0] }], [tThrow - 0.15, { p: [4.75, 1.6, 4.0], l: [4.5, 1.45, 0] }, 'cut']]);
+        [tThrow + 0.7, { p: [4.75, 1.6, 4.0], l: [4.5, 1.45, 0] }], [6.4, { p: [4.6, 1.62, 3.5], l: [4.45, 1.45, 0] }]]);
       lotBarrel.visible = true; stones.forEach((s, i) => { s.visible = true; s.position.y = 1.17 + Math.max(0, Math.sin(seg(t, tCast, tCast + 0.4) * PI)) * (0.15 + i * 0.03); });
       const k = sstep(t, tFell - 0.1, tJ - 0.05); lot.visible = true;
       lot.position.set(lerp(3.2, 4.25, k), lerp(1.18, 0.07, k) + Math.sin(k * PI) * 0.35, lerp(0.05, 0.6, k));
@@ -445,7 +449,7 @@ function makeGate() {
     const tSaid = wt(8, 'said'), t40 = wt(8, '“40');
     flags.forEach(f => f.userData.update(NOW));
     cam3(cam, t, [[0, { p: [0, 2.4, 13.5], l: [0, 4.2, -10] }], [0.4, { p: [0, 2.4, 13.5], l: [0, 4.2, -10] }], [tSaid, { p: [-0.5, 1.6, 7.8], l: [-0.2, 1.3, 0] }],
-      [t40 - 0.15, { p: [-1.0, 1.55, 6.2], l: [-0.65, 1.35, 0] }, 'cut']]);
+      [t40 - 0.15, { p: [-1.0, 1.55, 6.2], l: [-0.65, 1.35, 0] }], [5.9, { p: [-1.15, 1.55, 5.5], l: [-0.7, 1.38, 0] }]]);
     const turned = t > t40 - 0.1;
     townCrew.forEach(a => a.draw(t, cam));
     jGate.draw(t, cam);
@@ -500,8 +504,8 @@ function makeSquare() {
     L.sun.intensity = lerp(0.4, 2.8, cl); L.hemi.color.copy(col('#c9ccd2').lerp(col('#fff0d0'), cl));
     clouds.forEach(([c, side, x0]) => (c.position.x = x0 + side * cl * 26));
     rays.forEach(m => (m.material.opacity = cl * 0.3));
-    cam3(cam, t, [[0, { p: [-5.6, 1.4, 5.6], l: [-4.6, 0.8, -1] }], [0.3, { p: [-5.6, 1.4, 5.6], l: [-4.6, 0.8, -1] }], [tEven, { p: [-2.8, 1.4, 5.6], l: [-2, 0.8, -1] }],
-      [tEven, { p: [6.4, 1.45, 3.7], l: [6, 1.15, -2] }, 'cut'], [tSpared - 0.5, { p: [6.4, 1.45, 3.5], l: [6, 1.15, -2] }], [tSpared + 1.0, { p: [3.6, 3.0, 11.5], l: [4.5, 4.6, -6] }]]);
+    cam3(cam, t, [[0, { p: [-5.6, 1.4, 5.6], l: [-4.6, 0.8, -1] }], [0.3, { p: [-5.6, 1.4, 5.6], l: [-4.6, 0.8, -1] }], [tEven - 0.5, { p: [-2.4, 1.4, 5.6], l: [-1.6, 0.8, -1] }],
+      [tEven + 1.0, { p: [6.4, 1.45, 3.7], l: [6, 1.15, -2] }], [tSpared - 0.5, { p: [6.4, 1.45, 3.5], l: [6, 1.15, -2] }], [tSpared + 1.0, { p: [3.6, 3.0, 11.5], l: [4.5, 4.6, -6] }]]);
     kneelers.forEach(a => a.draw(t, cam));
     king.draw(t, cam);
     return { scene: sc, camera: cam };
@@ -542,7 +546,7 @@ function makeHill() {
     const fury = t >= tFur && t < tHed;
     let shake = null;
     if (t > stomp && t < tHed) { const e = Math.exp(-(t - stomp) * 7); shake = [Math.sin(t * 90) * 0.02 * e, Math.cos(t * 77) * 0.016 * e]; }
-    cam3(cam, t, [[0, { p: [1.3, y0 + 1.9, 9], l: [0, y0 + 1.4, 0] }], [tFur, { p: [0.06, y0 + 1.3, 3.1], l: [0, y0 + 1.2, 0] }, 'cut'], [tHed, { p: [0.06, y0 + 1.3, 3.1], l: [0, y0 + 1.2, 0] }],
+    cam3(cam, t, [[0, { p: [1.3, y0 + 1.9, 9], l: [0, y0 + 1.4, 0] }], [tFur - 0.3, { p: [1.0, y0 + 1.8, 8.0], l: [0, y0 + 1.35, 0] }], [tFur + 0.08, { p: [0.06, y0 + 1.3, 3.1], l: [0, y0 + 1.2, 0] }], [tHed, { p: [0.06, y0 + 1.3, 3.1], l: [0, y0 + 1.2, 0] }],
       [tHed + 0.55, { p: [0.35, y0 + 1.4, 4.7], l: [0, y0 + 1.1, 0] }]], { shake });
     jHill.draw(t, cam, (g, c, R) => { if (R.landAge < 0.6 && R.landImpact > 1.5) dustPuff(g, c.ax, c.ay, R.landAge / 0.6, 1.5, 4); });
     return { scene: sc, camera: cam };
@@ -599,7 +603,7 @@ function makeCity() {
     const tAnd = wt(11, 'And') - 0.1;
     zflag.userData.update(NOW);
     cam3(cam, t, [[0, { p: [0.5, jy + 1.75, 7.4], l: [-0.2, jy + 1.0, 0] }], [0.35, { p: [0.5, jy + 1.75, 7.4], l: [-0.2, jy + 1.0, 0] }], [tAnd, { p: [0, jy + 6, 12], l: [0, 1, -48] }],
-      [tAnd, { p: [3.5, jy + 3, 9.5], l: [0, 1, -50] }, 'cut']]);
+      [7.2, { p: [1.2, jy + 8, 15], l: [0, 1, -50] }]]);
     jCity.draw(t, cam);
     return { scene: sc, camera: cam };
   };
