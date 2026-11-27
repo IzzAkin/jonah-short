@@ -434,6 +434,10 @@ function drawHead(g, hx, hy, R, d) {
     else if (d.eyes === 'happy') { g.beginPath(); g.arc(ex, ey + 4, 8, 1.15 * PI, 1.85 * PI); stroke(g, 4.5); }
     else if (d.eyes === 'smug') { ell(g, ex + d.look * 1.5, ey + 1.5, 5, 4.5); fill(g, OUT); line(g, ex - 9, ey - 3, ex + 9, ey - 3, 4); }      // half-lidded: lid line over a dot
     else if (d.eyes === 'stars') { const st = (cx, cy, r) => { g.beginPath(); for (let k = 0; k < 10; k++) { const a = -PI / 2 + k * PI / 5, rr = k % 2 ? r * 0.45 : r; g.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } g.closePath(); }; circle(g, ex, ey, 9); fill(g, OUT); st(ex, ey, 7.5); fill(g, '#ffd34a'); glow(g, ex, ey, 22, '255,210,90', 0.5); }
+    else if (d.eyes === 'pain') { const sd = ex < hx + fx ? 1 : -1; g.beginPath(); g.moveTo(ex - sd * 9, ey - 8); g.lineTo(ex + sd * 7, ey); g.lineTo(ex - sd * 9, ey + 8); stroke(g, 4.5); }   // > <
+    else if (d.eyes === 'squint') { line(g, ex - 9, ey + 1, ex + 9, ey - 1, 4.5); }
+    else if (d.eyes === 'sad') { ell(g, ex + d.look * 1.5, ey + 2, 5, 5.2); fill(g, OUT); const sd = ex < hx + fx ? 1 : -1; line(g, ex - sd * 10, ey - 1, ex + sd * 9, ey - 7, 3.5); }   // droopy lid
+    else if (d.eyes === 'teary') { circle(g, ex, ey, 9); fs(g, '#fff', 3); circle(g, ex + d.look * 3, ey + 1, 5.5); fill(g, OUT); circle(g, ex - 1.5 + d.look * 3, ey - 1.5, 1.8); fill(g, '#fff'); g.beginPath(); g.arc(ex, ey + 2, 9.5, 0.15 * PI, 0.85 * PI); stroke(g, 3, 'rgba(120,200,240,0.95)'); }
     else if (d.eyes === 'glow') { circle(g, ex, ey, 6); fill(g, '#ff3b2f'); glow(g, ex, ey, 26, '255,60,40', 0.9); }
   };
   eye(ex1); eye(ex2);
@@ -464,8 +468,13 @@ function drawHead(g, hx, hy, R, d) {
     case 'grin': g.beginPath(); g.moveTo(mx - 26, my - 6); g.quadraticCurveTo(mx, my - 2, mx + 26, my - 6); g.quadraticCurveTo(mx + 20, my + 22, mx, my + 22); g.quadraticCurveTo(mx - 20, my + 22, mx - 26, my - 6); fs(g, '#fff', 4); for (let i = -2; i <= 2; i++) line(g, mx + i * 9, my - 4, mx + i * 9, my + 7, 2.5); line(g, mx - 24, my + 6, mx + 24, my + 6, 2.5); break;
     case 'smirk': g.beginPath(); g.moveTo(mx - 12, my + 2); g.quadraticCurveTo(mx + 4, my + 6, mx + dir * 15, my - 6); stroke(g, 4.5); break;
     case 'laugh': g.beginPath(); g.moveTo(mx - 24, my - 6); g.lineTo(mx + 24, my - 6); g.quadraticCurveTo(mx + 22, my + 30, mx, my + 30); g.quadraticCurveTo(mx - 22, my + 30, mx - 24, my - 6); fs(g, '#5a2420', 4); g.save(); g.clip(); ell(g, mx, my + 28, 14, 9); fill(g, '#d9606a'); g.restore(); rrect(g, mx - 20, my - 6, 40, 8, 3); fill(g, '#fff'); break;
+    case 'sob': g.beginPath(); g.moveTo(mx - 18, my + 6); for (let i = 1; i <= 6; i++) g.lineTo(mx - 18 + i * 6, my + (i % 2 ? 0 : 6)); g.quadraticCurveTo(mx + 12, my + 22, mx, my + 22); g.quadraticCurveTo(mx - 14, my + 22, mx - 18, my + 6); fs(g, '#5a2420', 4); break;
+    case 'ouch': poly(g, [[mx - 22, my - 2], [mx + 22, my - 8], [mx + 18, my + 16], [mx - 18, my + 18]]); fs(g, '#fff', 4); line(g, mx - 20, my + 6, mx + 20, my + 3, 3); break;
+    case 'pout': g.beginPath(); g.moveTo(mx - 10, my + 4); g.quadraticCurveTo(mx, my - 6, mx + 10, my + 4); stroke(g, 5); break;
     case 'wobbly': g.beginPath(); g.moveTo(mx - 16, my); for (let i = 1; i <= 4; i++) g.lineTo(mx - 16 + i * 8, my + (i % 2 ? -4 : 3)); stroke(g, 4.5); break;
   }
+  if (d.tears) { const k = mod(NOW * 1.3 + (d.id ? d.id.length * 0.37 : 0), 1); [ex1, ex2].forEach((ex, j) => { const ty = ey + 14 + mod(k + j * 0.5, 1) * 46; g.beginPath(); g.moveTo(ex, ty - 9); g.quadraticCurveTo(ex + 7, ty + 3, ex, ty + 6); g.quadraticCurveTo(ex - 7, ty + 3, ex, ty - 9); fs(g, '#8fd3f4', 3); }); }
+  if (d.blush) [ex1, ex2].forEach(ex => { ell(g, ex, ey + 20, 11, 6); fill(g, 'rgba(240,110,110,0.45)'); });
   if (d.sweat) { const sx2 = hx + dir * (R - 2), sy2 = hy - 34; g.beginPath(); g.moveTo(sx2, sy2 - 18); g.quadraticCurveTo(sx2 + 13, sy2 + 4, sx2, sy2 + 8); g.quadraticCurveTo(sx2 - 13, sy2 + 4, sx2, sy2 - 18); fs(g, '#8fd3f4', 4); }
   if (d.seaweed) {
     [[-40, 0.9], [5, 1.2], [45, 1]].forEach(([ox, l], i) => {

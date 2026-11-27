@@ -226,7 +226,7 @@ function rickFigure(g, sc, f, A, R, opts) {
   const fc = opts.face || {};
   return person(g, { ...rigLook(opts.look || LOOKS.jonah), x: 0, y: 0, s, dir: f, id: opts.id || 'J', idle: false, rot: lean + (opts.shake ? Math.sin(NOW * 70) * 0.03 : 0),
     pose, bow, arms, legAng: pose === 'stand' ? { F: P.lF, B: P.lB } : null, back: opts.back, seaweed: opts.seaweed,
-    eyes: fc.eyes || 'dot', brows: fc.brows || null, mouth: fc.mouth || 'line', sweat: fc.sweat, red: fc.red });
+    eyes: fc.eyes || 'dot', brows: fc.brows || null, mouth: fc.mouth || 'line', sweat: fc.sweat, red: fc.red, tears: fc.tears, blush: fc.blush });
 }
 function rickFigureSteam(g, J, s) { for (let i = 0; i < 4; i++) { const p = mod(NOW * 1.6 + i / 4, 1), side = i % 2 ? 1 : -1; circle(g, J.head[0] + side * (80 + p * 60) * s, J.head[1] - (50 + p * 170) * s, (14 + p * 30) * s); fill(g, `rgba(255,255,255,${0.9 * (1 - p)})`); } }
 function drawRunner(g, card, R, A, sc, light, opts = {}) {

@@ -74,10 +74,10 @@ function makeFish() {
   // trapped and jittery: clutching, a nervous shuffle and glances over each shoulder on 'running from God'
   const jFear = new Actor({ card: J, id: 'J', x: 0, floor: 0, dir: 1,
     script: t => ({ act: 'arms', actLife: 1.8, left: within(t, tRun, tRun + 0.09), right: within(t, tRun + 0.55, tRun + 0.62), faceTo: t > tRun + 0.3 && t < tRun + 0.55 ? -1 : 1 }),
-    face: () => ({ eyes: 'wide', brows: 'worried', mouth: 'wobbly', sweat: true }) });
+    face: t => t < tRun ? { eyes: 'sad', brows: 'worried', mouth: 'frown' } : t < tRun + 0.6 ? { eyes: 'wide', brows: 'raised', mouth: 'o', sweat: true } : { eyes: 'wide', brows: 'worried', mouth: 'wobbly', sweat: true } });
   // three days of prayer: sinks to his knees, then bows
   const jPray = new Actor({ card: J, id: 'J', x: 0, floor: 0, dir: 1,
-    script: t => ({ act: t < 0.6 ? 'kneel' : 'pray', actRate: 5, actLife: 0.7 }), face: () => ({ eyes: 'closed', brows: 'soft' }) });
+    script: t => ({ act: t < 0.6 ? 'kneel' : 'pray', actRate: 5, actLife: 0.7 }), face: t => t < 1.6 ? { eyes: 'closed', brows: 'worried', mouth: 'sob', tears: true } : t < 2.4 ? { eyes: 'teary', brows: 'worried', mouth: 'wobbly' } : { eyes: 'closed', brows: 'soft', mouth: 'line' } });
   const tick = t => { drops.forEach((d, i) => { const per = 1.3 + i * 0.37, ph = mod(t + i * 0.53, per) / per; d.position.set([-1.6, 1.3, 0.9, -0.6][i], lerp(4.2, 0.05, ph * ph), [-1, -3, 1.5, -5][i]); }); };
   return {
     shot1(t) {
@@ -158,10 +158,10 @@ function makeHarbor() {
       if (t < tOpp + 0.25) return { act: t > tTicket - 0.35 ? 'pay' : null, faceTo: 1 };
       return { right: true };
     },
-    face: t => t < tc ? { eyes: 'dot', brows: 'worried', mouth: 'frown' } : t < tOpp + 0.25 ? { brows: 'raised', mouth: 'smile' } : { eyes: 'dot', brows: 'soft', mouth: 'smile' } });
+    face: t => t < tc - 0.6 ? { eyes: 'sad', brows: 'worried', mouth: 'frown' } : t < tc ? { eyes: 'squint', brows: 'angry', mouth: 'pout' } : t < tTicket - 0.4 ? { eyes: 'smug', brows: 'skeptic', mouth: 'smirk' } : t < tOpp + 0.25 ? { eyes: 'happy', brows: 'raised', mouth: 'grin' } : { eyes: 'dot', brows: 'soft', mouth: 'smile' } });
   const sailorA = new Actor({ card: S, id: 'S1', x: -1.8, z: -0.1, dir: -1, look: LOOKS.sailor1,
     script: (t, R) => ({ act: t > tTicket - 0.2 && t < tOpp + 0.6 ? 'plead' : t > tOpp + 0.7 ? 'wave' : null, faceTo: t > tOpp + 0.45 ? 1 : -1, actRate: 6 }),
-    face: t => ({ eyes: t > tOpp + 0.45 ? 'wide' : 'dot', mouth: t > tTicket ? 'smile' : 'line' }) });
+    face: t => t > tOpp + 0.45 ? { eyes: 'wide', brows: 'skeptic', mouth: 'o' } : t > tTicket ? { eyes: 'happy', brows: 'raised', mouth: 'grin' } : { eyes: 'smug', brows: 'soft', mouth: 'smirk' } });
   const fn = function (t) {
     sea.userData.update(NOW); shipFlag.userData.update(NOW);
     jon.advance(t);
@@ -238,7 +238,7 @@ function makeShip() {
   const Jl = new Card(bd, { w: 1536, h: 1024, ax: 768, ay: 640, pxm: 470, base: 1.9, blob: 0, castShadow: false });
   const bcam = newCam();
   const roll = t => Math.sin(1.7 * (SHOTS[2].a + t));
-  const stormActs = ['armsUp', 'arms', 'pray', 'plead'], stormFaces = [{ eyes: 'wide', brows: 'worried', mouth: 'open' }, { eyes: 'closed', brows: 'worried', mouth: 'wobbly' }, { eyes: 'closed', brows: 'worried', mouth: 'frown' }, { eyes: 'wide', brows: 'worried', mouth: 'o' }];
+  const stormActs = ['armsUp', 'arms', 'pray', 'plead'], stormFaces = [{ eyes: 'wide', brows: 'worried', mouth: 'open', sweat: true }, { eyes: 'closed', brows: 'worried', mouth: 'sob', tears: true }, { eyes: 'closed', brows: 'worried', mouth: 'wobbly' }, { eyes: 'teary', brows: 'worried', mouth: 'o', sweat: true }];
   const stormCrew = [0, 1, 2, 3].map(i => new Actor({ card: sailors[i], id: 'S' + i, x: i * 2.5, floor: 0, dir: i % 2 ? -1 : 1, look: LOOKS['sailor' + i],
     // the deck pitches: the standing sailors stagger a half-step with each roll, the kneeling one rocks in place
     script: t => ({ act: stormActs[i], actLife: 1.6, right: i !== 2 && roll(t) > 0.92, left: i !== 2 && roll(t) < -0.92, cap: 0.7, faceTo: i % 2 ? -1 : 1 }),
@@ -248,11 +248,11 @@ function makeShip() {
   const lotCrew = [[1.3, 0.3, 1, 0], [2.1, -0.6, 1, 2], [5.6, -0.4, -1, 1], [6.5, 0.3, -1, 3]].map(([x, z, dir, si], i) => new Actor({ card: sailors[i], id: 'S' + si, x, z, floor: 0, dir, look: LOOKS['sailor' + si],
     // nervous huddle; when the lot falls on Jonah they lean back and stare at him
     script: t => ({ act: t > tJ4 - 0.05 ? 'shocked' : 'arms', actRate: t > tJ4 - 0.05 ? 10 : 6, faceTo: dir, left: dir < 0 && within(t, tJ4 + 0.05, tJ4 + 0.12), right: dir > 0 && within(t, tJ4 + 0.05, tJ4 + 0.12) }),
-    face: t => t > tJ4 - 0.05 ? { eyes: 'wide', brows: 'raised', mouth: 'o' } : { eyes: 'dot', brows: 'worried', mouth: 'line' } }));
+    face: t => t > tJ4 - 0.05 ? [{ eyes: 'wide', brows: 'raised', mouth: 'o' }, { eyes: 'wide', brows: 'worried', mouth: 'open' }, { eyes: 'wide', brows: 'raised', mouth: 'wobbly', sweat: true }, { eyes: 'sad', brows: 'worried', mouth: 'frown' }][i] : i % 2 ? { eyes: 'sad', brows: 'worried', mouth: 'wobbly', sweat: true } : { eyes: 'dot', brows: 'worried', mouth: 'line' } }));
   // Jonah startles back when the lot rolls to his feet, then steps up and points out to sea: 'Throw me in'
   const jLot = new Actor({ card: J, id: 'J', x: 4.4, floor: 0, dir: 1,
     script: (t, R) => t < tJ4 ? { act: 'stare' } : t < tJ4 + 0.12 ? { left: true } : t < tThrow4 - 0.2 ? { faceTo: 1, act: 'cower', actRate: 5 } : t < tThrow4 + 0.5 ? { ...seek(R, 4.7, 0.8), act: REMORSE, actRate: 4 } : { act: REMORSE, faceTo: 1, actRate: 4 },
-    face: t => t < tJ4 ? { eyes: 'dot', brows: 'worried' } : t < tThrow4 - 0.15 ? { eyes: 'wide', brows: 'worried', mouth: 'o' } : { eyes: 'closed', brows: 'worried', mouth: 'frown' } });
+    face: t => t < tJ4 ? { eyes: 'dot', brows: 'worried' } : t < tThrow4 - 0.15 ? { eyes: 'wide', brows: 'worried', mouth: 'o' } : t < tThrow4 + 1.4 ? { eyes: 'closed', brows: 'worried', mouth: 'frown' } : { eyes: 'sad', brows: 'worried', mouth: 'wobbly', tears: true } });
   const deckPose = (t, flash) => { ship.rotation.z = 0.028 * Math.sin(NOW * 1.7); ship.rotation.x = 0.018 * Math.sin(NOW * 1.3); sea.userData.update(NOW); L.hemi.intensity = 1.0 + flash * 3.5; L.sun.intensity = 1.3 + flash * 2; };
   const stormPost = (t, flash, seed) => g => { rain(g, NOW, 170, 0.42); if (flash > 0) { bolt(g, seed === 3 ? 760 : 220, -100, 900, seed, flash); g.fillStyle = `rgba(225,235,255,${flash * 0.5})`; g.fillRect(0, 0, W, H); } };
   return {
@@ -284,8 +284,9 @@ function makeShip() {
     shot4(t) {
       const tCast = wt(4, 'cast'), tFell = wt(4, 'fell'), tJ = wt(4, 'him.'), tThrow = wt(4, '“Throw');
       const flash = flashAmt(t, [tJ]); deckPose(t, flash);
-      cam3(cam, t, [[0, { p: [3.0, 1.55, 2.6], l: [3, 1.0, 0] }], [tFell - 0.15, { p: [3.25, 1.45, 2.6], l: [3.25, 0.95, 0] }], [tJ, { p: [4.3, 0.75, 2.4], l: [4.3, 0.15, 0.5] }],
-        [tThrow + 0.7, { p: [4.75, 1.6, 4.0], l: [4.5, 1.45, 0] }], [6.4, { p: [4.6, 1.62, 3.5], l: [4.45, 1.45, 0] }]]);
+      jLot.advance(t); const jx = jLot.R.x;   // from the lot on, the camera is locked on Jonah: it frames his face and follows him
+      cam3(cam, t, [[0, { p: [3.0, 1.55, 2.6], l: [3, 1.0, 0] }], [tFell - 0.15, { p: [3.25, 1.45, 2.6], l: [3.25, 0.95, 0] }], [tJ - 0.2, { p: [4.3, 0.75, 2.4], l: [4.3, 0.15, 0.5] }],
+        [tJ + 0.35, { p: [jx + 0.05, 1.45, 3.4], l: [jx, 1.3, 0] }], [tThrow + 0.6, { p: [jx + 0.05, 1.6, 3.6], l: [jx, 1.5, 0] }], [6.4, { p: [jx + 0.03, 1.62, 3.0], l: [jx, 1.5, 0] }]], { drift: 0 });
       lotBarrel.visible = true; stones.forEach((s, i) => { s.visible = true; s.position.y = 1.17 + Math.max(0, Math.sin(seg(t, tCast, tCast + 0.4) * PI)) * (0.15 + i * 0.03); });
       const k = sstep(t, tFell - 0.1, tJ - 0.05); lot.visible = true;
       lot.position.set(lerp(3.2, 4.25, k), lerp(1.18, 0.07, k) + Math.sin(k * PI) * 0.35, lerp(0.05, 0.6, k));
@@ -370,7 +371,7 @@ function makeBeach() {
   const jSpat = new Actor({ card: J, id: 'J', x: 2.6, y: 1.1, z: 1.7, floor: 0, dir: 1, start: tS7, seaweed: true,
     init: R => Object.assign(R, { ground: false, vx: -2.5, vy: 5.6, airT: 0 }),
     script: (t, R) => !R.ground ? { tumble: -1.1, jump: R.vy > 0, act: 'sink', actRate: 14 } : R.rollT > 0 ? {} : { act: 'kneel', actRate: 5 },
-    face: (t, R) => !R.ground || R.rollT > 0 ? { eyes: 'wide', mouth: 'o' } : { eyes: 'wide', brows: 'raised', mouth: 'wobbly' } });
+    face: (t, R) => !R.ground || R.rollT > 0 ? { eyes: 'wide', mouth: 'o' } : mod(t, 1.7) < 0.5 ? { eyes: 'squint', brows: 'worried', mouth: 'ouch' } : { eyes: 'wide', brows: 'raised', mouth: 'wobbly', sweat: true } });
   return function (tb) {
     sea.userData.update(NOW); foam.position.z = -2.9 + Math.sin(NOW * 1.3) * 0.35; foam.material.opacity = 0.6 + 0.3 * Math.sin(NOW * 1.3 + 1);
     cam3(cam, tb, [[0, { p: [0.9, 1.6, 7.4], l: [1.1, 0.7, -2] }], [2.8, { p: [0.9, 1.5, 6.8], l: [1.1, 0.6, -2] }]]);
@@ -433,7 +434,7 @@ function makeGate() {
   const tSaid8 = wt(8, 'said'), t408 = wt(8, '“40'), tOver8 = wt(8, 'overthrown.”');
   const jGate = new Actor({ card: J, id: 'J', x: -7.5, z: 0.7, floor: 0, dir: 1,
     script: (t, R) => t < 0.5 ? { act: 'stare' } : t < t408 - 0.1 ? seek(R, -1.6, 1.8) : { act: 'proclaim', faceTo: 1, actRate: 9 },
-    face: t => t > t408 - 0.15 ? { brows: 'raised', mouth: 'open' } : { brows: 'soft', mouth: 'line' } });
+    face: t => t > t408 - 0.15 ? { eyes: 'wide', brows: 'angry', mouth: 'open' } : { eyes: 'sad', brows: 'flat', mouth: 'pout' } });
   const townCrew = crowd.map((c, i) => {
     const look = TOWN[i % TOWN.length], kid = !!look.k, react = t408 - 0.1 + i * 0.05;
     const walker = i === 1 ? [3.2, 1.1] : i === 6 ? [1.6, 3.7] : null;
@@ -443,7 +444,8 @@ function makeGate() {
         if (t > tOver8 && i % 2 === 0) return { ...seek(R, c.x + 0.45, 1.4), act: kid ? 'cower' : 'shocked', faceTo: -1 };
         return { act: kid ? 'cower' : 'shocked', faceTo: -1, actRate: 11 };
       },
-      face: t => t > react ? { eyes: 'wide', brows: 'raised', mouth: 'o' } : { mouth: c.mood } });
+      face: t => t > react ? [{ eyes: 'wide', brows: 'raised', mouth: 'o' }, { eyes: 'teary', brows: 'worried', mouth: 'sob', tears: true }, { eyes: 'wide', brows: 'worried', mouth: 'ouch', sweat: true }, { eyes: 'sad', brows: 'worried', mouth: 'wobbly' }][i % 4]
+        : [{ eyes: 'happy', mouth: 'smile' }, { mouth: 'line' }, { eyes: 'dot', brows: 'raised', mouth: 'grin' }, { eyes: 'smug', mouth: 'smirk' }][i % 4] });
   });
   return function (t) {
     const tSaid = wt(8, 'said'), t40 = wt(8, '“40');
@@ -482,16 +484,19 @@ function makeSquare() {
   const rays = [0, 1, 2, 3].map(i => shaft(sc, [3.5 + i * 1.8, 12, -6 + i * 0.6], 30, 0.8, 3.2, '#ffe7a0', 0, [0.08, 0, -0.18 + i * 0.05]));
   const looks = [{ head: 'veil', headCol: '#9c8664' }, { head: 'hair', headCol: '#2e2420' }, { beard: 'short' }, { head: 'veil', headCol: '#7f6d55' }, { head: 'hair', headCol: '#5a3d28' }, { beard: 'full', beardCol: '#8c8c8c' }];
   const rr = rng(77), people = [];
-  for (let row = 0; row < 3; row++) for (let i = 0; i < 6; i++) people.push({ card: CREW(sc), id: 'P' + row + '_' + i, crowd: true, ...looks[Math.floor(rr() * looks.length)], kid: rr() < 0.18, x: -9.5 + i * 1.6 + row * 0.6 + (rr() - 0.5) * 0.4, z: 1.2 - row * 1.4, dir: rr() < 0.7 ? 1 : -1 });
+  // everyone kneels around the king's ash heap (6, -2): rows in front, a few flanking him, a row behind
+  const spots = [[4.5, 2.5], [5.5, 2.6], [6.5, 2.5], [7.5, 2.6], [3.8, 1.1], [4.9, 1.2], [6.0, 1.0], [7.1, 1.2], [8.2, 1.1], [3.5, -0.6], [4.3, -1.5], [8.5, -0.5], [3.9, -3.6], [5.0, -3.9], [6.1, -4.0], [7.2, -3.9], [8.2, -3.6]];
+  spots.forEach(([x, z], i) => people.push({ card: CREW(sc), id: 'P' + i, crowd: true, ...looks[Math.floor(rr() * looks.length)], kid: rr() < 0.18, x: x + (rr() - 0.5) * 0.2, z, dir: x < 6 ? 1 : -1 }));
   const K = LEAD(sc), cam = newCam();
   const tSp9 = wt(9, 'spared');
   const kneelers = people.map((p, i) => { const look = sackLook(TOWN[i % TOWN.length]), lift = tSp9 + 0.25 + (i % 6) * 0.09;
     return new Actor({ card: p.card, id: p.id, x: p.x, z: p.z, floor: 0, dir: p.dir, look, k: p.kid ? 0.66 : 0.95,
       script: t => ({ act: t < lift ? 'pray' : 'kneel', actRate: t < lift ? 8 : 3, actLife: t < lift ? 0.6 : 1 }),
-      face: t => t < lift ? { eyes: 'closed', brows: 'worried' } : { eyes: 'dot', brows: 'raised', mouth: 'smile' } }); });
+      face: t => t < lift ? [{ eyes: 'closed', brows: 'worried', mouth: 'sob', tears: true }, { eyes: 'teary', brows: 'worried', mouth: 'wobbly' }, { eyes: 'closed', brows: 'worried', mouth: 'frown' }, { eyes: 'sad', brows: 'worried', mouth: 'pout', tears: true }][i % 4]
+        : [{ eyes: 'happy', brows: 'raised', mouth: 'laugh' }, { eyes: 'teary', brows: 'raised', mouth: 'smile', tears: true }, { eyes: 'happy', brows: 'soft', mouth: 'grin', blush: true }][i % 3] }); });
   const king = new Actor({ card: K, id: 'K', x: 6, z: -2, floor: 0.42, dir: -1, look: LOOKS.kingSack,
     script: t => ({ act: t < tSp9 + 0.4 ? 'sitBow' : 'sit', actRate: t < tSp9 + 0.4 ? 8 : 2.5, actLife: 0.7 }),
-    face: t => t < tSp9 + 0.4 ? { eyes: 'closed', brows: 'worried', mouth: 'frown' } : { eyes: 'dot', brows: 'raised', mouth: 'line' } });
+    face: t => t < tSp9 + 0.4 ? { eyes: 'closed', brows: 'worried', mouth: 'sob', tears: true } : { eyes: 'teary', brows: 'raised', mouth: 'smile', tears: true } });
   const sg = skyCv.getContext('2d');
   return function (t) {
     const tSpared = wt(9, 'spared'), tEven = wt(9, 'Even') - 0.1;
@@ -504,8 +509,9 @@ function makeSquare() {
     L.sun.intensity = lerp(0.4, 2.8, cl); L.hemi.color.copy(col('#c9ccd2').lerp(col('#fff0d0'), cl));
     clouds.forEach(([c, side, x0]) => (c.position.x = x0 + side * cl * 26));
     rays.forEach(m => (m.material.opacity = cl * 0.3));
-    cam3(cam, t, [[0, { p: [-5.6, 1.4, 5.6], l: [-4.6, 0.8, -1] }], [0.3, { p: [-5.6, 1.4, 5.6], l: [-4.6, 0.8, -1] }], [tEven - 0.5, { p: [-2.4, 1.4, 5.6], l: [-1.6, 0.8, -1] }],
-      [tEven + 1.0, { p: [6.4, 1.45, 3.7], l: [6, 1.15, -2] }], [tSpared - 0.5, { p: [6.4, 1.45, 3.5], l: [6, 1.15, -2] }], [tSpared + 1.0, { p: [3.6, 3.0, 11.5], l: [4.5, 4.6, -6] }]]);
+    // one frame for the whole city and its king: a high wide on the crowd, a slow push down to the king, then a crane up to the clearing sky
+    cam3(cam, t, [[0, { p: [6.0, 4.6, 12.5], l: [6.0, 0.6, -1] }], [tEven, { p: [6.0, 3.9, 11.0], l: [6.0, 0.7, -1.2] }], [tSpared - 0.4, { p: [6.1, 3.0, 9.0], l: [6.0, 0.9, -1.6] }],
+      [tSpared + 1.3, { p: [5.6, 3.6, 12.5], l: [5.8, 3.2, -6] }]], { drift: 0.06 });
     kneelers.forEach(a => a.draw(t, cam));
     king.draw(t, cam);
     return { scene: sc, camera: cam };
@@ -537,18 +543,62 @@ function makeHill() {
   const J = new Card(sc, { base: 1.53, blob: 0.95, h: 1800, ay: 1700 }), cam = newCam();
   const y0 = hf(0, 0);
   const tFurH = wt(10, 'furious.'), tHedH = wt(10, 'He’d');
+  // after the stomp he takes it out on the rocks: two small ones fly, the third is a half-buried boulder and hurts his foot
+  const KICK = { lean: -16, tilt: -6, aF: [-50, -20], aB: [70, 30], lF: [82, 0], lB: [-6, -4] };
+  const WIND = { lean: 10, tilt: 4, aF: [40, 30], aB: [-40, -30], lF: [-45, -30], lB: [6, -4] };
+  const OUCH = { lean: 24, tilt: 14, aF: [28, -20], aB: [18, -24], lF: [35, -115], lB: [-4, -4] };
+  const kicks = [[tHedH + 0.45, 0], [tHedH + 1.35, -0.7], [tHedH + 2.25, -1.4]];   // [time of contact, standing x]
+  const tOw = kicks[2][0];
+  const rockAt = (k, t) => {   // kicked rocks: ballistic with two bounces, then roll to rest (deterministic)
+    let x = k.x0, y = hf(k.x0, 0.12) + k.r * 0.55, rot = 0;
+    if (k.big || t < k.tk) return [x, y - (k.big ? k.r * 0.35 : 0), 0];
+    let vx = -4.2 - k.r * 3, vy = 3.4, yy = y, tt = 0; const g = 9.8;
+    for (let n = 0; n < 3 && tt < t - k.tk; n++) {
+      const tf = 2 * vy / g, d = Math.min(tf, t - k.tk - tt);
+      x += vx * d; yy = y + vy * d - 0.5 * g * d * d; rot += vx * d / k.r; tt += d;
+      if (d < tf) return [x, yy, rot];
+      vx *= 0.55; vy *= 0.4; yy = y;
+    }
+    const d = t - k.tk - tt, s2 = Math.max(0, 1 - d * 1.4), dist = vx * (1 - s2 * s2) / 2.8;
+    return [x + dist, y, rot + dist / k.r];
+  };
   const jHill = new Actor({ card: J, id: 'J', x: 0, floor: y0, dir: -1,
-    script: t => t < tFurH - 0.16 ? { act: 'stare' } : t < tFurH - 0.1 ? { jump: true, jumpV: 3.6 } : t < tHedH ? { act: 'fury', actRate: 14 } : { act: 'arms', actRate: 5 },
-    face: t => t < tFurH - 0.1 ? { eyes: 'dot', brows: 'soft', mouth: 'frown' } : t < tHedH ? { red: true, eyes: 'angry', brows: 'angry', mouth: 'grit', steam: true } : { eyes: 'dot', brows: 'angry', mouth: 'frown' },
+    script: (t, R) => {
+      if (t < tFurH - 0.16) return { act: 'stare' };
+      if (t < tFurH - 0.1) return { jump: true, jumpV: 3.6 };
+      if (t < tHedH) return { act: 'fury', actRate: 14 };
+      for (const [tk, x] of kicks) {
+        if (t < tk - 0.26) return { ...seek(R, x, 2.4), act: 'fury', actRate: 6 };
+        if (t < tk - 0.06) return { act: WIND, actRate: 18, faceTo: -1 };
+        if (t < tk + 0.22) return { act: tk === tOw ? { ...KICK, lF: [40, 0] } : KICK, actRate: 30, faceTo: -1 };
+        if (tk === tOw) break;
+      }
+      // hopping on one foot, clutching the other
+      const h = t - tOw - 0.22, hop = h > 0.1 && mod(h, 0.42) < 0.05;
+      return { act: OUCH, actRate: 8, jump: hop, jumpV: 1.5, right: h > 0.3 && h < 0.9, cap: 0.5, faceTo: -1 };
+    },
+    face: t => t < tFurH - 0.1 ? { eyes: 'sad', brows: 'soft', mouth: 'frown' } : t < tHedH ? { red: true, eyes: 'angry', brows: 'angry', mouth: 'grit' }
+      : t < tOw ? (mod(t - tHedH, 0.85) < 0.42 ? { eyes: 'squint', brows: 'angry', mouth: 'grit' } : { eyes: 'angry', brows: 'angry', mouth: 'pout' })
+      : t < tOw + 0.5 ? { eyes: 'wide', brows: 'raised', mouth: 'o', red: true } : { eyes: 'pain', brows: 'worried', mouth: 'ouch', tears: true, sweat: true },
     shake: (t, R) => t > tFurH && t < tHedH && R.ground ? 5 : 0 });
+  // each rock sits where his kicking foot will actually land: run the (deterministic) actor ahead to each kick and read his x
+  const rocks = kicks.map(([tk], i) => { jHill.advance(tk); const big = i === 2, rr = big ? 0.3 : 0.13 + i * 0.03, px = jHill.R.x - (big ? 0.42 : 0.38) - rr * 0.6;
+    const m = sph(sc, rr, big ? '#8d8070' : '#9a8b76', [px, 0, 0.12], { s: big ? [1.3, 0.75, 1] : [1.2, 0.9, 1], map: texSpeckle('#b8a88e', [1, 1], 600, 0.25, 50 + i), emissive: '#6a5c48', ei: 0.5, ol: 0.02 });
+    return { m, tk, x0: px, r: rr, big }; });
+  jHill.reset();
   return function (t) {
     const tFur = wt(10, 'furious.'), tHed = wt(10, 'He’d'), stomp = tFur + 0.12;
-    const fury = t >= tFur && t < tHed;
     let shake = null;
     if (t > stomp && t < tHed) { const e = Math.exp(-(t - stomp) * 7); shake = [Math.sin(t * 90) * 0.02 * e, Math.cos(t * 77) * 0.016 * e]; }
+    if (t > tOw && t < tOw + 0.4) { const e = Math.exp(-(t - tOw) * 10); shake = [Math.sin(t * 95) * 0.03 * e, Math.cos(t * 81) * 0.02 * e]; }
+    rocks.forEach(k => { const [x, y, rot] = rockAt(k, t); k.m.position.set(x, y, 0.12); k.m.rotation.z = -rot; });
+    jHill.advance(t); const jx = jHill.R.x;
     cam3(cam, t, [[0, { p: [1.3, y0 + 1.9, 9], l: [0, y0 + 1.4, 0] }], [tFur - 0.3, { p: [1.0, y0 + 1.8, 8.0], l: [0, y0 + 1.35, 0] }], [tFur + 0.08, { p: [0.06, y0 + 1.3, 3.1], l: [0, y0 + 1.2, 0] }], [tHed, { p: [0.06, y0 + 1.3, 3.1], l: [0, y0 + 1.2, 0] }],
-      [tHed + 0.55, { p: [0.35, y0 + 1.4, 4.7], l: [0, y0 + 1.1, 0] }]], { shake });
-    jHill.draw(t, cam, (g, c, R) => { if (R.landAge < 0.6 && R.landImpact > 1.5) dustPuff(g, c.ax, c.ay, R.landAge / 0.6, 1.5, 4); });
+      [tHed + 0.6, { p: [jx - 0.35, y0 + 1.3, 5.4], l: [jx - 0.35, y0 + 0.75, 0] }], [tOw, { p: [jx - 0.3, y0 + 1.25, 5.0], l: [jx - 0.3, y0 + 0.8, 0] }], [tOw + 0.9, { p: [jx - 0.1, y0 + 1.3, 3.9], l: [jx - 0.1, y0 + 1.0, 0] }], [4.8, { p: [jx - 0.05, y0 + 1.35, 3.4], l: [jx - 0.05, y0 + 1.1, 0] }]], { shake, drift: 0.04 });
+    jHill.draw(t, cam, (g, c, R) => {
+      if (R.landAge < 0.6 && R.landImpact > 1.5) dustPuff(g, c.ax, c.ay, R.landAge / 0.6, 1.5, 4);
+      kicks.forEach(([tk]) => { const a = (t - tk) / 0.45; if (a > 0 && a < 1) dustPuff(g, c.ax - 260, c.ay - 10, a, 1.1, 3); });
+    });
     return { scene: sc, camera: cam };
   };
 }
@@ -589,16 +639,11 @@ function makeCity() {
   for (let i = 0; i < 70; i++) { const fx = -40 + r() * 80, fz = -18 - r() * 12; dm.position.set(fx + (i % 2 ? 22 : -22) * (r() < 0.3 ? 1 : 0), 0.4, fz); dm.scale.set(1.3, 0.9, 1); dm.updateMatrix(); sheep.setMatrixAt(i, dm.matrix); }
   for (let i = 0; i < 18; i++) { dm.position.set(-40 + r() * 80, 0.3, -20 - r() * 10); dm.scale.set(0.55, 0.55, 0.55); dm.rotation.y = r() * PI; dm.updateMatrix(); cows.setMatrixAt(i, dm.matrix); }
   sheep.castShadow = cows.castShadow = true; sc.add(sheep); sc.add(cows);
-  // tiny people in the streets (2D sprites)
-  const ptex = ['#c94b3a', '#4a8fc4', '#e1a23c', '#3f9a6a', '#7a5aa8'].map((c, i) => canvasTex(128, 192, g => person(g, { x: 64, y: 186, s: 0.42, robe: c, head: i % 2 ? 'veil' : null, headCol: '#d9c08f', idle: false, id: 'tiny' + i })));
-  for (let i = 0; i < 70; i++) {
-    const s = new T3.Sprite(new T3.SpriteMaterial({ map: ptex[i % 5] })); const kid = r() < 0.25 ? 0.65 : 1;
-    s.center.set(0.5, 0.03); s.position.set(-19 + r() * 38, 0, -35 - r() * 32); s.scale.set(1.1 * kid, 1.65 * kid, 1); sc.add(s);
-  }
   const J = LEAD(sc), cam = newCam();
   const jy = -4 + Math.sqrt(144 - 0.25);
-  sph(sc, 0.55, '#8d7a64', [-0.3, jy + 0.12, 3.38], { s: [1.25, 1.0, 0.9], map: texSpeckle('#8d7a64', [2, 2], 1200, 0.25, 81), ol: 0.03 });
-  const jCity = new Actor({ card: J, id: 'J', x: -0.3, z: 3.5, floor: jy, dir: 1, back: true, script: () => ({ act: 'perch', actRate: 20, actLife: 0.6 }) });
+  const hy = (x, z) => -4 + Math.sqrt(144 - x * x - (z - 4) * (z - 4));
+  palm(sc, [-0.8, hy(-0.8, 2.7) - 0.05, 2.7], 4.4, -0.2);   // he sits in its shade, back to us, looking over the city
+  const jCity = new Actor({ card: J, id: 'J', x: -0.3, z: 3.5, floor: jy, dir: 1, back: true, script: () => ({ act: 'sit', actRate: 20, actLife: 0.5 }) });
   return function (t) {
     const tAnd = wt(11, 'And') - 0.1;
     zflag.userData.update(NOW);
